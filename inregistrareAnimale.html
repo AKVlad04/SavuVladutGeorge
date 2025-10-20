@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formular de înregistrare animale</title>
+    <link rel="stylesheet" href="inregistrareAnimale.css">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Formular de înregistrare animale</h1>
+        <p>Vă rugăm să completați formularul pentru a înregistra animalul dumneavoastră la clinica noastră veterinară.</p>
+        <form action="#" method="POST">
+            <label for="nume_stapan">Nume stăpân:</label>
+            <input type="text" id="nume_stapan" name="nume_stapan" required>
+
+            <label for="telefon">Telefon:</label>
+            <input type="text" id="telefon" name="telefon" required>
+
+            <label for="nume_animal">Nume animal:</label>
+            <input type="text" id="nume_animal" name="nume_animal" required>
+
+            <label for="specie">Specie:</label>
+            <select id="specie" name="specie" required>
+                <option value="Caine">Câine</option>
+                <option value="Pisica">Pisică</option>
+                <option value="Iepure">Iepure</option>
+                <option value="Altul">Altul</option>
+            </select>
+
+            <label>Sexul animalului:</label>
+            <input type="radio" id="mascul" name="sex" value="Mascul" required>
+            <label for="mascul">Mascul</label>
+            <input type="radio" id="femela" name="sex" value="Femelă" required>
+            <label for="femela">Femelă</label>
+
+            <label for="servicii">Servicii dorite:</label>
+            <div>
+                <input type="checkbox" id="vaccinare" name="servicii" value="Vaccinare">
+                <label for="vaccinare">Vaccinare</label>
+            </div>
+            <div>
+                <input type="checkbox" id="deparazitare" name="servicii" value="Deparazitare">
+                <label for="deparazitare">Deparazitare</label>
+            </div>
+            <div>
+                <input type="checkbox" id="consult" name="servicii" value="Consult">
+                <label for="consult">Consult</label>
+            </div>
+
+            <label for="observatii">Observații:</label>
+            <textarea id="observatii" name="observatii" rows="4" cols="50"></textarea>
+
+            <div class="buttons">
+                <button type="submit">Trimite</button>
+                <button type="reset">Resetează</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
