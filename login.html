@@ -2,18 +2,37 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="login.css" />
   <title>Login</title>
 </head>
 <body>
+
   <header class="top_bar">
+
     <a href="main.html" class="home_button">Home</a>
-    <a href="login.html" class="login_button">Login</a>
+
+
   </header>
 
-  <main>
-    <!-- Conținut Login -->
-    <h1>Pagina de Login</h1>
-  </main>
+
+    <div class="login-container">
+        <div class="form-container">
+            <h2>Logare</h2>
+            <form action="#" method="POST">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Introdu emailul" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Parolă</label>
+                    <input type="password" id="password" name="password" placeholder="Introdu parola" required>
+                </div>
+                <button type="submit">Logare</button>
+                <p class="signup-link">Nu ai cont? <a href="inregistrare.html">Înregistrează-te</a></p>
+            </form>
+        </div>
+    </div>
+
+
 </body>
 </html>

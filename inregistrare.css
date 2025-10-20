@@ -112,16 +112,16 @@ button:hover {
   background-color: #0056b3;
 }
 
-.signup-link {
+.login-link {
   margin-top: 10px;
   font-size: 14px;
 }
 
-.signup-link a {
+.login-link a {
   color: #007bff;
   text-decoration: none;
 }
 
-.signup-link a:hover {
+.login-link a:hover {
   text-decoration: underline;
 }
