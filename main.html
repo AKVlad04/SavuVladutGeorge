@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="style.css">
+
+
+
   <title>Magazin NFT</title>
 </head>
 <body>
@@ -13,7 +17,47 @@
     <a href="login.html" class="login_button">Login</a>
   </header>
 
-      <img class = "poze" src="nft1.jpg">
+   <div class="slideshow-container">
+  <div class="slide fade">
+    <img src="nft1.jpg" alt="NFT 1">
+  </div>
+
+  <div class="slide fade">
+    <img src="nft2.jpg" alt="NFT 2">
+  </div>
+
+  <div class="slide fade">
+    <img src="nft3.jpeg" alt="NFT 3">
+  </div>
+
+  <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
+  <a class="next" onclick="changeSlide(1)">&#10095;</a>
+</div>
+
+
+<script src="main.js"></script>
+
+
+<footer class="footer-info">
+  <div class="footer-left">
+    <p>Magazinul nostru NFT oferă cele mai tari colecții digitale pentru colecționari și investitori.</p>
+  </div>
+  <div class="footer-right">
+    <a href="support.html">Support</a> |
+    <a href="https://facebook.com" target="_blank">Facebook</a> |
+    <a href="https://twitter.com" target="_blank">Twitter</a> |
+    <a href="https://instagram.com" target="_blank">Instagram</a>
+  </div>
+</footer>
+
+<footer class="footer-bottom">
+  <div class="footer-left">
+    <p>Magazin NFT</p>
+  </div>
+  <div class="footer-right">
+    <p><a href="terms.html">Termeni și Condiții</a></p>
+  </div>
+</footer>
 
 
 </body>
