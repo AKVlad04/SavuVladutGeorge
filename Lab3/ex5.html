@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Exercitiul 5</title>
+</head>
+<body>
+  <script>
+   //ex 1 triunghi echilateral + verificare existenta triunghi
+   let A = 10;
+   let B = 10;
+   let C = 10;
+   if(A + B > C && A + C > B && B + C > A)
+   		console.log("Numerele: "+ A + "," + B + "," + C + " pot forma un triunghi!");
+   else
+   		console.log("Numerele: "+ A + "," + B + "," + C + " nu pot forma un triunghi!");
+
+   if (A === B && B === C) {
+   		console.log("Triunghiul este echilateral.");
+   		} else if (A === B || A === C || B === C) {
+        	console.log("Triunghiul este isoscel.");
+      	} else {
+        	console.log("Triunghiul este oarecare.");
+     	}
+    console.log(" ");
+
+    //ex2 triunghi isoscel + verificare existenta triunghi
+   let AA = 15;
+   let BB = 12;
+   let CC = 15;
+   if(AA + BB > CC && AA + CC > BB && BB + CC > AA)
+   		console.log("Numerele: "+ AA + "," + BB + "," + CC + " pot forma un triunghi!");
+   else
+   		console.log("Numerele: "+ AA + "," + BB + "," + CC + " nu pot forma un triunghi!");
+
+ if (AA === BB && BB === CC) {
+    	console.log("Triunghiul este echilateral.");
+   	 	} else if (AA === BB || AA === CC || BB === CC) {
+        console.log("Triunghiul este isoscel.");
+      	} else {
+        console.log("Triunghiul este oarecare.");
+      	}
+
+    console.log(" ");
+   //ex3 triunghi oarecare + verificare existenta triunghi
+   let AAA = 5;
+   let BBB = 6;
+   let CCC = 7;
+   if(AAA + BBB > CCC && AAA + CCC > BBB && BBB + CCC > AAA)
+   		console.log("Numerele: "+ AAA + "," + BBB + "," + CCC + " pot forma un triunghi!");
+   else
+   		console.log("Numerele: "+ AAA + "," + BBB + "," + CCC + " nu pot forma un triunghi!");
+
+ 	if (AAA === BBB && BBB === CCC) {
+    	console.log("Triunghiul este echilateral.");
+      	} else if (AAA === BBB || AAA === CCC || BBB === CCC) {
+        console.log("Triunghiul este isoscel.");
+      	} else {
+        console.log("Triunghiul este oarecare.");
+      	}
+      	
+	console.log(" ");
+  //caz laturile nu pot forma un triunghi
+	let AAAA = 18;
+	let BBBB = 6;
+	let CCCC = 7;
+
+	if (AAAA + BBBB > CCCC && AAAA + CCCC > BBBB && BBBB + CCCC > AAAA) {
+  		console.log("Numerele: " + AAAA + "," + BBBB + "," + CCCC + " pot forma un triunghi!");
+
+  	if (AAAA === BBBB && BBBB === CCCC) {
+    	console.log("Triunghiul este echilateral.");
+ 	 	} else if (AAAA === BBBB || AAAA === CCCC || BBBB === CCCC) {
+  	 	 console.log("Triunghiul este isoscel.");
+  		} else {
+    	console.log("Triunghiul este oarecare.");
+ 		 }
+
+		} else {
+  		console.log("Numerele: " + AAAA + "," + BBBB + "," + CCCC + " nu pot forma un triunghi!");
+		}
+
+  </script>
+</body>
+</html>

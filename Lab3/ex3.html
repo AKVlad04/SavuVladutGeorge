@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Exercitiul 3</title>
+</head>
+<body>
+  <script>
+   let a = 69;
+   let b = 420;
+   let c = 8;
+	console.log("Pentru numelere: " + a + "," + b + "," + c + ":");
+   if (a >= b && a >= c) {
+      if (b >= c)
+        console.log(a, b, c);
+      else
+        console.log(a, c, b);
+    } else if (b >= a && b >= c) {
+      if (a >= c)
+        console.log(b, a, c);
+      else
+        console.log(b, c, a);
+    } else {
+      if (a >= b)
+        console.log(c, a, b);
+      else
+        console.log(c, b, a);
+    }
+
+  </script>
+</body>
+</html>
