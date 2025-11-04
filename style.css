@@ -1,13 +1,20 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
 }
 
-main {
-  min-height: calc(100vh - 120px); 
-  padding: 20px 30px;
-  box-sizing: border-box;
+body {
+  background-color: #2c2c2c;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  padding-top: 10px;
+  display: flex; flex-direction: column;
 }
 
 .top_bar {
@@ -33,12 +40,14 @@ main {
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
   transition: background-color 0.3s;
 }
 
-.login_button { top: 30px; right: 300px; }
+.login_button {
+  margin-left: 1490px;
+}
+
+.login_button { top: 30px; right: 30px; }
 .home_button { top: 30px; left: 30px; }
 .explore_button { top: 30px; left: 150px; }
 
@@ -66,8 +75,6 @@ main {
   color: #888;
 }
 
-
-
 footer {
   width: 100%;
   box-sizing: border-box;
@@ -90,10 +97,6 @@ footer {
   margin-left: 15px;
 }
 
-.footer-info a:hover {
-  text-decoration: underline;
-}
-
 .footer-bottom {
   background-color: #111;
   font-size: 13px;
@@ -104,16 +107,6 @@ footer {
   text-decoration: none;
 }
 
-.footer-bottom a:hover {
-  text-decoration: underline;
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
 
 main {
   flex: 1 0 auto;      
@@ -122,12 +115,6 @@ main {
   box-sizing: border-box;
 }
 
-/* Footere */
-footer {
-  flex-shrink: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
 
 #backToTop {
   position: fixed;
@@ -151,8 +138,33 @@ footer {
   transform: scale(1.1);
 }
 
-/* Când devine vizibil */
 #backToTop.show {
   opacity: 1;
   visibility: visible;
+}
+
+
+.faq {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.faq-item {
+  background-color: #1a1a1a;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.faq-item h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+.faq-item p {
+  font-size: 15px;
+  color: #ddd;
 }

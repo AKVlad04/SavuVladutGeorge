@@ -31,24 +31,7 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.login_button, .home_button, .explore_button {
-  text-decoration: none;
-  padding: 15px 30px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition: background-color 0.3s;
-}
 
-.home_button:hover,
-.explore_button:hover,
-.login_button:hover {
-  background-color: #0056b3;
-}
 
 .login-container {
   display: flex;
