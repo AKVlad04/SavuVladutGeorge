@@ -12,6 +12,7 @@
       <a href="main.html" class="home_button">Home</a>
       <a href="explore.html" class="explore_button">Explore</a>
       <input type="text" id="search_bar" name="search_bar" placeholder="Search collections..." />
+         <a href="cart.html" class="cart_button">Cart</a>
       <a href="login.html" class="login_button">Login</a>
     </header>
 
@@ -37,11 +38,80 @@
 
         <div class="faq-item">
           <h3>4. Cum pot contacta suportul?</h3>
-          <p>Poți contacta echipa noastră de suport prin e-mail la support@nftmagazin.ro sau folosind formularul de contact de pe site.</p>
+          <p>Poți contacta echipa noastră de suport prin e-mail la support@nftmagazin.ro sau folosind formularul de contact de mai jos.</p>
         </div>
       </div>
     </section>
-  </main>
+
+    <br>
+
+
+<div class="how_box">
+  <div class="support_how">
+    <h1 class="how_text">CUM TE POT AJUTA?</h1>
+
+    <form id="contactForm">
+      <label for="subiect">Subiect:</label>
+      <input type="text" id="subiect" name="subiect" required>
+
+      <div class="name-email">
+        <div>
+          <label for="nume">Nume:</label>
+          <input type="text" id="nume" name="nume" required>
+        </div>
+        <div>
+          <label for="adresa_mail">Email:</label>
+          <input type="email" id="adresa_mail" name="adresa_mail" required>
+        </div>
+      </div>
+
+      <label for="mesaj">Mesaj:</label>
+      <textarea id="mesaj" name="mesaj" required></textarea>
+
+      <button type="submit">Trimite</button>
+    </form>
+
+    <p id="status"></p>
+  </div>
+</div>
+
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init("GQBSuae247lfOoDC0"); // <-- înlocuiește cu cheia ta publică
+  })();
+
+  document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const params = {
+      subiect: document.getElementById("subiect").value,
+      nume: document.getElementById("nume").value,
+      adresa_mail: document.getElementById("adresa_mail").value,
+      mesaj: document.getElementById("mesaj").value
+    };
+
+    emailjs.send("service_bfpjvql", "template_jf1iinh", params)
+      .then(function(response) {
+        document.getElementById("status").innerText = "✅ Mesaj trimis cu succes!";
+      }, function(error) {
+        document.getElementById("status").innerText = "❌ Eroare la trimitere. Încearcă din nou.";
+        console.error("Eroare:", error);
+      });
+  });
+</script>
+
+
+
+
+
+
+
+
+
+
+
 
   <footer class="footer-info">
     <div class="footer-left">
