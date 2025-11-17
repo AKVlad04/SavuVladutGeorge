@@ -1,0 +1,75 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    min-height: 100%;
+}
+
+body {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    padding-top: 20px;
+    /* Centrare conținut */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+.card-produs {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.img-produs {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 15px 0;
+}
+
+#btnDetalii {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 15px;
+    transition: background-color 0.3s;
+}
+
+#btnDetalii:hover {
+    background-color: #0056b3;
+}
+
+.descriere {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    color: #ddd;
+}
+
+.info-data {
+    font-size: 0.9em;
+    color: #aaa;
+    font-style: italic;
+}
+
+.ascuns {
+    display: none;
+}
