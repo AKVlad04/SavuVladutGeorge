@@ -1,0 +1,157 @@
+
+.support-content {
+  margin-top: 120px;
+  padding: 20px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  color: white;
+}
+
+.support-content h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.faq {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.faq-item {
+  background-color: #333;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.faq-item h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+.faq-item p {
+  font-size: 15px;
+  color: #ddd;
+  line-height: 1.5;
+}
+
+.faq-item a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+/* --- Secțiunea Formular de Contact --- */
+.how_box {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.how_text {
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #007bff;
+  display: inline-block;
+  padding-bottom: 10px;
+  /* Asigură centrarea completă a titlului */
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.support_how {
+  background-color: #333;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+}
+
+.support_how form {
+  width: 100%;
+}
+
+.support_how label {
+  display: block;
+  color: #bbb;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Câmpurile de input */
+.support_how input, 
+.support_how textarea {
+  width: 100%; /* Acum nu va mai ieși din container datorită box-sizing de sus */
+  padding: 12px 15px;
+  background-color: #222;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.support_how input:focus, 
+.support_how textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+.support_how textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.name-email {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.name-email div {
+  flex: 1;
+  min-width: 200px; 
+}
+
+.support_how button {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  margin: 30px auto 0;
+  padding: 14px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.support_how button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+#status {
+  text-align: center;
+  font-weight: bold;
+  color: #00ff88;
+}

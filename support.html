@@ -2,9 +2,9 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" href="main.css" />
   <link rel="stylesheet" href="style.css">
-  <title>Support - Magazin NFT</title>
+  <link rel="stylesheet" href="support.css">
+  <title>Support - NFT Store</title>
 </head>
 <body>
   <main>
@@ -18,27 +18,27 @@
 
     <section class="support-content" style="margin-top: 120px; padding: 20px;">
       <h1>Support</h1>
-      <p>Gaseste răspunsuri la întrebarile tale frecvente mai jos:</p>
+      <p>Find answers to your frequently asked questions below:</p>
 
       <div class="faq">
         <div class="faq-item">
-          <h3>1. Cum pot crea un cont pe Magazin NFT?</h3>
-          <p>Pentru a crea un cont, acceseaza pagina de <a href="login.html">Login</a> și urmează instructiunile de inregistrare.</p>
+          <h3>1. How do I create an account on NFT Store?</h3>
+          <p>To create an account, access the <a href="login.html">Login</a> page and follow the registration instructions.</p>
         </div>
 
         <div class="faq-item">
-          <h3>2. Cum pot cumpăra un NFT?</h3>
-          <p>Dupa ce te-ai autentificat, navigheaza la sectiunea <a href="explore.html">Explore</a>, alege NFT-ul dorit și urmează pasii de achizitie.</p>
+          <h3>2. How do I buy an NFT?</h3>
+          <p>Once you've logged in, navigate to the <a href="explore.html">Explore</a> section, choose the NFT you want, and follow the purchase steps.</p>
         </div>
 
         <div class="faq-item">
-          <h3>3. Ce metode de plata sunt acceptate?</h3>
-          <p>Momentan acceptăm plăți prin card bancar și portofele digitale compatibile cu Ethereum.</p>
+          <h3>3. What payment methods are accepted?</h3>
+          <p>We currently accept payments via bank card and Ethereum-compatible digital wallets.</p>
         </div>
 
         <div class="faq-item">
-          <h3>4. Cum pot contacta suportul?</h3>
-          <p>Poți contacta echipa noastră de suport prin e-mail la support@nftmagazin.ro sau folosind formularul de contact de mai jos.</p>
+          <h3>4. How can I contact support?</h3>
+          <p>You can contact our support team using the contact form below.</p>
         </div>
       </div>
     </section>
@@ -48,15 +48,15 @@
 
 <div class="how_box">
   <div class="support_how">
-    <h1 class="how_text">CUM TE POT AJUTA?</h1>
+    <h1 class="how_text">HOW CAN I HELP YOU?</h1>
 
     <form id="contactForm">
-      <label for="subiect">Subiect:</label>
+      <label for="subiect">Subject:</label>
       <input type="text" id="subiect" name="subiect" required>
 
       <div class="name-email">
         <div>
-          <label for="nume">Nume:</label>
+          <label for="nume">Full Name:</label>
           <input type="text" id="nume" name="nume" required>
         </div>
         <div>
@@ -65,73 +65,85 @@
         </div>
       </div>
 
-      <label for="mesaj">Mesaj:</label>
+      <label for="mesaj">Message:</label>
       <textarea id="mesaj" name="mesaj" required></textarea>
 
-      <button type="submit">Trimite</button>
+      <button type="submit">Send</button>
     </form>
 
     <p id="status"></p>
   </div>
 </div>
 
-<!-- EmailJS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  (function(){
-    emailjs.init("GQBSuae247lfOoDC0"); // <-- înlocuiește cu cheia ta publică
-  })();
-
-  document.getElementById("contactForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const params = {
-      subiect: document.getElementById("subiect").value,
-      nume: document.getElementById("nume").value,
-      adresa_mail: document.getElementById("adresa_mail").value,
-      mesaj: document.getElementById("mesaj").value
-    };
-
-    emailjs.send("service_bfpjvql", "template_jf1iinh", params)
-      .then(function(response) {
-        document.getElementById("status").innerText = "✅ Mesaj trimis cu succes!";
-      }, function(error) {
-        document.getElementById("status").innerText = "❌ Eroare la trimitere. Încearcă din nou.";
-        console.error("Eroare:", error);
-      });
-  });
-</script>
-
-
-
-
-
-
-
-
 
 
 
 
   <footer class="footer-info">
-    <div class="footer-left">
-      <p>Magazinul nostru NFT oferă cele mai tari colecții digitale pentru colecționari și investitori.</p>
-    </div>
-    <div class="footer-right">
-      <a href="support.html">Support</a> |
-      <a href="https://facebook.com" target="_blank">Facebook</a> |
-      <a href="https://twitter.com" target="_blank">Twitter</a> |
-      <a href="https://instagram.com" target="_blank">Instagram</a>
-    </div>
-  </footer>
+  <div class="footer-left">
+    <p>Our NFT store offers the hottest digital collectibles for collectors and investors.</p>
+  </div>
+  <div class="footer-right">
+    <a href="support.html">Support</a> |
+    <a href="https://facebook.com" target="_blank">Facebook</a> |
+    <a href="https://twitter.com" target="_blank">Twitter</a> |
+    <a href="https://instagram.com" target="_blank">Instagram</a>
+  </div>
+</footer>
 
-  <footer class="footer-bottom">
-    <div class="footer-left">
-      <p>Magazin NFT</p>
-    </div>
-    <div class="footer-right">
-      <p><a href="terms.html">Termeni și Condiții</a></p>
-    </div>
-  </footer>
+<footer class="footer-bottom">
+  <div class="footer-left">
+    <p>NFT Store</p>
+  </div>
+  <div class="footer-right">
+    <p><a href="terms.html">Terms</a></p>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+  (function() {
+    // IMPORTANT: Înlocuiește textul de mai jos cu Public Key-ul tău
+    emailjs.init("GQBSuae247lfOoDC0"); 
+  })();
+
+  document.getElementById('contactForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Oprește reîncărcarea paginii
+
+    // Schimbăm textul butonului ca să știe userul că se trimite
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerText;
+    btn.innerText = "Sending...";
+
+    // Colectăm datele din formular
+    // Cheile din stânga (ex: nume, mesaj) trebuie să fie EXACT ca în Template-ul de pe site-ul EmailJS
+    const templateParams = {
+      subiect: document.getElementById('subiect').value,
+      nume: document.getElementById('nume').value,
+      adresa_mail: document.getElementById('adresa_mail').value,
+      mesaj: document.getElementById('mesaj').value
+    };
+
+    // Trimitem emailul
+    // IMPORTANT: Înlocuiește cu Service ID și Template ID ale tale
+    emailjs.send('service_jrq7rzf', 'template_vx3s4cc', templateParams)
+      .then(function() {
+        // Succes
+        document.getElementById('status').innerText = "✅ Message sent successfully!";
+        document.getElementById('status').style.color = "#00ff88"; // Verde neon
+        document.getElementById('contactForm').reset(); // Golește formularul
+        btn.innerText = originalText;
+      }, function(error) {
+        // Eroare
+        document.getElementById('status').innerText = "❌ Failed to send message. Please try again.";
+        document.getElementById('status').style.color = "red";
+        console.error('EmailJS Error:', error);
+        btn.innerText = originalText;
+      });
+  });
+</script>
+
 </body>
 </html>
