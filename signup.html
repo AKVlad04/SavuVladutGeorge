@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="auth.css">
-    <title>Login - Nexus</title>
+    <title>Sign Up - Nexus</title>
 </head>
 <body>
 
@@ -16,19 +16,24 @@
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
         </div>
-        <a href="signup.html" class="connect_wallet">
-            <span class="connect_wallet_text">Sign Up</span>
+        <a href="login.html" class="connect_wallet">
+            <span class="connect_wallet_text">Login</span>
         </a>
     </header>
 
     <div class="auth_page">
         <div class="auth_container">
-            <h1 class="auth_title">Welcome Back</h1>
-            <span class="auth_subtitle">Login to manage your collection</span>
+            <h1 class="auth_title">Create Account</h1>
+            <span class="auth_subtitle">Join the future of digital art</span>
 
             <div id="alertBox" class="alert"></div>
 
-            <form class="auth_form" action="login.php" method="POST">
+            <form class="auth_form" action="signup.php" method="POST">
+                <div class="form_group">
+                    <label class="form_label">Username</label>
+                    <input type="text" name="username" class="form_input" required>
+                </div>
+
                 <div class="form_group">
                     <label class="form_label">Email Address</label>
                     <input type="email" name="email" class="form_input" required>
@@ -39,11 +44,16 @@
                     <input type="password" name="password" class="form_input" required>
                 </div>
 
-                <button type="submit" class="auth_button">Log In</button>
+                <div class="form_group">
+                    <label class="form_label">Confirm Password</label>
+                    <input type="password" name="confirm_password" class="form_input" required>
+                </div>
+
+                <button type="submit" class="auth_button">Sign Up</button>
             </form>
 
             <div class="auth_footer">
-                Don't have an account? <a href="signup.html" class="auth_link">Sign up</a>
+                Already have an account? <a href="login.html" class="auth_link">Log in</a>
             </div>
         </div>
     </div>
@@ -51,25 +61,16 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const alertBox = document.getElementById('alertBox');
-
-        // Mesaj Succes (de la Sign Up)
-        if (urlParams.has('success')) {
-            alertBox.style.display = 'block';
-            alertBox.className = 'alert alert-success';
-            if(urlParams.get('success') === 'registered') {
-                alertBox.innerText = "Account created successfully! Please login.";
-            }
-        }
-
-        // Mesaj Eroare (de la Login)
+        
         if (urlParams.has('error')) {
             alertBox.style.display = 'block';
             alertBox.className = 'alert alert-error';
             const err = urlParams.get('error');
-            
-            if(err === 'empty') alertBox.innerText = "Please fill in all fields.";
-            else if(err === 'invalid') alertBox.innerText = "Invalid email or password.";
-            else if(err === 'inactive') alertBox.innerText = "Your account is inactive.";
+
+            if(err === 'empty') alertBox.innerText = "All fields are required.";
+            else if(err === 'mismatch') alertBox.innerText = "Passwords do not match.";
+            else if(err === 'exists') alertBox.innerText = "Username or Email already exists.";
+            else if(err === 'db') alertBox.innerText = "Server error. Try again.";
         }
     </script>
 </body>

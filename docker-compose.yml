@@ -1,0 +1,11 @@
+
+services:
+  website:
+    build: .
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+    # Această setare permite containerului PHP să "vadă" portul 3307 de pe calculatorul tău
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,128 @@
+@import url('style.css');
+
+.auth_page {
+    margin: 150px 0 100px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+}
+
+.auth_container {
+    background-color: rgb(26, 26, 36);
+    width: 500px;
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #35d8f6;
+    box-shadow: 0 0 20px rgba(53, 216, 246, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth_title {
+    font-size: 32px;
+    color: white;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.auth_subtitle {
+    font-size: 14px;
+    color: rgb(156, 163, 175);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.auth_form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form_group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form_label {
+    color: #e5e7eb;
+    font-size: 14px;
+}
+
+.form_input {
+    width: 100%;
+    padding: 15px;
+    background-color: #0a0a0f;
+    border: 1px solid #35d8f6;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.form_input:focus {
+    box-shadow: 0 0 10px rgba(53, 216, 246, 0.4);
+}
+
+.auth_button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 15px;
+    background-color: #35d8f6;
+    border: none;
+    border-radius: 8px;
+    color: #0a0a0f;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.auth_button:hover {
+    background-color: #00d9ff;
+    transform: translateY(-2px);
+}
+
+.auth_footer {
+    margin-top: 25px;
+    font-size: 14px;
+    color: rgb(156, 163, 175);
+}
+
+.auth_link {
+    color: #35d8f6;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth_link:hover {
+    text-decoration: underline;
+}
+
+/* Mesaje de eroare si succes */
+.alert {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+    display: none; /* Ascuns default */
+}
+
+.alert-error {
+    background-color: rgba(220, 38, 38, 0.2);
+    border: 1px solid #ef4444;
+    color: #ef4444;
+}
+
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.2);
+    border: 1px solid #10b981;
+    color: #10b981;
+}

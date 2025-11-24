@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="profile.css">
+    <title>My Profile - Nexus</title>
+</head>
+<body>
+
+    <header class="top_bar">
+        <a href="index.html" class="logo">
+            <span class="nexus_logo">N</span>
+            <span class="nexus">Nexus</span>
+        </a>   
+        <div class="buttons_footer">
+            <a href="index.html" class="home_button">Home</a>
+            <a href="explore.html" class="explore_button">Explore</a>
+            <a href="create.html" class="create_button">Create</a>
+        </div>
+        <a href="logout.php" class="connect_wallet" style="border-color: #ef4444;">
+            <span class="connect_wallet_text" style="color: #ef4444;">Logout</span>
+        </a>
+    </header>
+
+    <div class="profile_page">
+        <div class="profile_card" id="profileCard" style="opacity: 0; transition: opacity 0.5s;">
+            
+            <div class="profile_avatar" id="userAvatar">?</div>
+            
+            <h1 class="profile_name" id="userName">Loading...</h1>
+            <span class="profile_email" id="userEmail">...</span>
+
+            <div class="profile_stats">
+                <div class="stat_box">
+                    <span class="stat_value">User</span>
+                    <span class="stat_label">Role</span>
+                </div>
+                <div class="stat_box">
+                    <span class="stat_value" id="userStatus" style="color: #10b981;">...</span>
+                    <span class="stat_label">Status</span>
+                </div>
+                <div class="stat_box">
+                    <span class="stat_value" id="userId">#0</span>
+                    <span class="stat_label">ID</span>
+                </div>
+            </div>
+
+            <a href="logout.php" class="logout_btn">Sign Out</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch('get_profile.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.logged_in) {
+                        // Dacă e logat, completăm datele în HTML
+                        document.getElementById('userName').textContent = data.username;
+                        document.getElementById('userEmail').textContent = data.email;
+                        document.getElementById('userStatus').textContent = data.status;
+                        document.getElementById('userId').textContent = "#" + data.id;
+                        document.getElementById('userAvatar').textContent = data.initial;
+                        
+                        // Facem cardul vizibil
+                        document.getElementById('profileCard').style.opacity = '1';
+                    } else {
+                        // Dacă NU e logat, îl trimitem forțat la Login
+                        window.location.href = 'login.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Eroare:', error);
+                    window.location.href = 'login.html';
+                });
+        });
+    </script>
+
+</body>
+</html>

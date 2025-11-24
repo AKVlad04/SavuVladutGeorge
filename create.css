@@ -1,0 +1,139 @@
+.create_page{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    margin-top: 120px;
+    gap: 20px;
+    border-bottom-width: 0.3px;
+    border-bottom-style: solid;
+    border-bottom-color: #35d8f6;
+}
+.create_new{
+    margin-left: 350px;
+    color: white;
+    font-size: 32px;
+
+}
+
+.upload_text{
+    margin-left: 350px;
+    color: rgb(156 163 175);
+    font-size: 16px;
+}
+
+.upload_container{
+    margin-left: 350px;
+    margin-top: 20px;
+    width: 820px;
+    height: 400px;
+    border-width: 0.3px;
+    background-color: rgb(26 26 36);
+    border-style: solid;
+    border-color: #35d8f6;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+.upload_file{
+    margin-top: 20px;
+    margin-left: 20px;
+}
+
+.upload_box{
+    margin-left: 350px;
+    margin-top: 30px;
+    margin-left: 30px;
+    width: 760px;
+    height: 300px;
+    border: 2px dashed #35d8f6;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon_upload{
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.drag_text{
+    color: (229, 231, 235);
+    font-size: 18px;
+}
+
+.file_types{
+    color: rgb(107, 114, 128);
+    font-size: 14px;
+}
+
+.nft_details{
+    margin-top: 20px;
+    margin-left: 350px;
+    width: 820px;
+    height: 550px;
+    border-width: 0.3px;
+    background-color: rgb(26 26 36);
+    border-style: solid;
+    border-color: #35d8f6;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+#nftTitle, #nftPrice, #categoryFilter{
+    margin-left: 30px;
+    margin-top: 10px;
+    width: 760px;
+    height: 50px;
+    background-color: #0a0a0f;
+    border: none;
+    box-shadow: 0 0 0 0.6px #35d8f6;
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+#nftDescription{
+    margin-left: 30px;
+    margin-top: 20px;
+    width: 760px;
+    height: 150px;
+    background-color: #0a0a0f;
+    border: none;
+    box-shadow: 0 0 0 0.6px #35d8f6;
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    resize: none;
+}
+
+.details_title, .details_description, .details_price, .details_category{
+    color: rgb(229, 231, 235);
+    font-size: 18px;
+    margin-left: 30px;
+    margin-top: 20px;
+}
+
+
+
+.create_nft_button{
+    margin-left: 350px;
+    margin-top: 20px;
+    margin-bottom: 200px;
+    width: 820px;
+    height: 50px;
+    background-color: #35d8f6;
+    border: none;
+    border-radius: 8px;
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
