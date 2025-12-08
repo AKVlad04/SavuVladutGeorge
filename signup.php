@@ -42,8 +42,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
     } catch (PDOException $e) {
-        header("Location: signup.html?error=db");
-        exit();
-    }
+    // Comentăm redirecționarea
+    // header("Location: signup.html?error=db");
+    // exit();
+    
+    // Afișăm eroarea brută pe ecran
+    die("EROARE DETALIATĂ: " . $e->getMessage()); 
+}
 }
 ?>

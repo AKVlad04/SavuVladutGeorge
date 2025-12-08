@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formular de Contact</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Formular de Contact</h2>
+    
+    <div id="successMessage" class="success-message" style="display: none;"></div>
+
+    <form id="contactForm">
+        <div class="form-group">
+            <label for="nume">Nume:</label>
+            <input type="text" id="nume" name="nume" placeholder="Numele tău">
+            <span class="error" id="err-nume"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" placeholder="email@exemplu.com">
+            <span class="error" id="err-email"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="mesaj">Mesaj:</label>
+            <textarea id="mesaj" name="mesaj" rows="5" placeholder="Scrie mesajul aici..."></textarea>
+            <span class="error" id="err-mesaj"></span>
+        </div>
+
+        <button type="submit">Trimite</button>
+    </form>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

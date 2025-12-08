@@ -1,11 +1,35 @@
+version: '3.8'
 
 services:
+  # Containerul PHP (Site-ul tău)
   website:
     build: .
     ports:
       - "8000:80"
     volumes:
       - ./:/var/www/html
-    # Această setare permite containerului PHP să "vadă" portul 3307 de pe calculatorul tău
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db  # Așteaptă ca baza de date să pornească
+    # Am șters 'extra_hosts' - nu mai ai nevoie de el
+
+  # Containerul MySQL (Nou adăugat)
+  db:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: parola
+      MYSQL_DATABASE: savuvladutgeorge
+    ports:
+      - "3306:3306" # Opțional: ca să poți vedea baza din Workbench
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - '8081:80'
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: parola # Aceeași parolă ca la db
+    depends_on:
+      - db

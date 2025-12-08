@@ -1,11 +1,9 @@
 <?php
-$host = 'db'; 
-
-$port = '3306';     
-
-$user = 'root';
-$pass = 'parola'; 
-$db   = 'savuvladutgeorge';
+$host = 'mysql';      // Numele serviciului din docker-compose
+$db   = 'studenti';   // Baza de date
+$user = 'user';       // User
+$pass = 'password';   // Parola
+$port = 3306;
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
@@ -18,5 +16,7 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    die("Eroare conexiune DB: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => "Eroare DB: " . $e->getMessage()]);
+    exit;
 }
+?>
