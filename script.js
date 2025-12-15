@@ -17,6 +17,12 @@ const nftsFromDB = [
 
 // Elementele DOM
 const container = document.getElementById('nftsContainer');
+// quick load log and clear placeholder if present
+console.log('script.js loaded');
+const globalAproxPlaceholder = document.getElementById('aprox');
+if (globalAproxPlaceholder && globalAproxPlaceholder.textContent && globalAproxPlaceholder.textContent.includes('xxxx')) {
+    globalAproxPlaceholder.textContent = '≈ $0.00 USD';
+}
 // Verificăm dacă există containerul (pentru a nu da eroare pe pagini unde nu sunt NFT-uri)
 if (container) {
     const popup = document.getElementById('nftPopup');
@@ -25,7 +31,7 @@ if (container) {
     const popupDescription = document.getElementById('popupDescription');
     const popupPrice = document.getElementById('popupPrice');
     const popupImg = document.getElementById('popupImage');
-    const closeBtn = popup.querySelector('.close');
+    const closeBtn = popup ? popup.querySelector('.close') : null;
 
     // Elementele pentru Filtrare
     const filterButtonDiv = document.getElementById('filterButton');
@@ -80,13 +86,66 @@ if (container) {
             </div>
             `;
             
-            div.addEventListener('click', () => {
+            div.addEventListener('click', async () => {
                 popupTitle.textContent = nft.name;
                 popupCategory.textContent = nft.category;
                 popupDescription.textContent = nft.description;
                 popupPrice.textContent = nft.price + " ETH";
                 popupImg.src = nft.image_url;
                 popup.classList.add('show');
+                // Update approximate USD price in the popup. Query the element inside the popup
+                const aproxElLocal = popup ? popup.querySelector('#aprox') : null;
+                // Debug: log opening
+                console.log('Opening popup for', nft.name, 'popup found?', !!popup);
+                if (aproxElLocal) {
+                    aproxElLocal.textContent = '≈ loading...';
+                    console.log('#aprox inside popup found');
+                } else {
+                    console.log('#aprox NOT found inside popup, trying global lookup');
+                }
+
+                try {
+                    const fallbackRate = 1900; // USD per ETH if external API fails
+                    let rate = fallbackRate;
+                    const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+                    console.log('CoinGecko fetch ok?', resp.ok, 'status', resp.status);
+                    if (resp.ok) {
+                        const json = await resp.json();
+                        console.log('CoinGecko response', json);
+                        if (json && json.ethereum && typeof json.ethereum.usd === 'number') {
+                            rate = json.ethereum.usd;
+                            console.log('ETH->USD rate', rate);
+                        }
+                    } else {
+                        console.warn('CoinGecko returned non-ok status, using fallback rate', rate);
+                    }
+
+                    const text = "≈ $" + (nft.price * rate).toFixed(2) + " USD";
+                    if (aproxElLocal) {
+                        aproxElLocal.textContent = text;
+                        console.log('Updated aprox inside popup:', text);
+                    } else {
+                        // fallback: try document-wide id (in case popup scoping differs)
+                        const globalAprox = document.getElementById('aprox');
+                        if (globalAprox) {
+                            globalAprox.textContent = text;
+                            console.log('#aprox updated via document.getElementById');
+                        } else {
+                            console.warn('Could not find #aprox to update');
+                        }
+                    }
+                } catch (e) {
+                    const text = "≈ $" + (nft.price * 1900).toFixed(2) + " USD";
+                    if (aproxElLocal) {
+                        aproxElLocal.textContent = text;
+                        console.log('Fetch failed — used fallback and updated inside popup:', text);
+                    } else {
+                        const globalAprox = document.getElementById('aprox');
+                        if (globalAprox) globalAprox.textContent = text;
+                        console.log('Fetch failed — used fallback and updated global #aprox:', text);
+                    }
+                    console.error('Error fetching ETH price:', e);
+                }
             });
             
             container.appendChild(div);
