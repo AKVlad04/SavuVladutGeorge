@@ -1,0 +1,258 @@
+/* Verification Tabs */
+.verif_tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.verif_tab_btn {
+    background: #23272f;
+    color: #00d9ff;
+    border: 1.5px solid #00d9ff;
+    border-radius: 7px 7px 0 0;
+    padding: 8px 28px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    outline: none;
+}
+.verif_tab_btn.active, .verif_tab_btn:focus {
+    background: #00d9ff;
+    color: #23272f;
+    border-bottom: 2px solid #23272f;
+    z-index: 2;
+}
+/* Dashboard specific styles */
+:root{
+    --bg:#0a0a0f;
+    --card:#111217;
+    --accent:#00d9ff;
+    --muted:#9ca3af;
+}
+
+.dashboard_container{
+    display:flex;
+    gap:24px;
+    padding:110px 40px 60px 40px; /* leave space for fixed header */
+}
+
+.dashboard_nav{
+    width:220px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:18px;
+    height:calc(100vh - 140px);
+    position:sticky;
+    top:90px;
+}
+.dashboard_nav ul{ list-style:none; display:flex; flex-direction:column; gap:8px }
+.dashboard_nav li{
+    padding:12px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    color:var(--muted);
+}
+.dashboard_nav li.active,
+.dashboard_nav li:hover{
+    background: rgba(0,217,255,0.06);
+    color:var(--accent);
+}
+
+.dashboard_main{ flex:1 }
+.dashboard_panel{ background:var(--card); padding:18px; border-radius:10px; color:#fff }
+.cards_row{ display:flex; gap:16px; margin-bottom:18px }
+.stat_card{ flex:1; background:rgba(255,255,255,0.02); padding:16px; border-radius:8px; text-align:center }
+.stat_value{ font-size:28px; font-weight:700; color:var(--accent) }
+.stat_label{ font-size:13px; color:var(--muted); margin-top:6px }
+
+.chart_card{ margin-top:6px; background:rgba(255,255,255,0.01); padding:12px; border-radius:8px }
+.chart_wrap{ height:260px; }
+.chart_wrap canvas{ width:100% !important; height:100% !important }
+
+/* Overview chart grid */
+.overview_charts{ display:grid; grid-template-columns: 1fr 320px; gap:16px; align-items:start }
+.overview_main_chart .chart_wrap{ height:320px }
+.overview_side_charts{ display:flex; flex-direction:column; gap:12px }
+.small_card{ background: rgba(255,255,255,0.02); padding:10px; border-radius:8px }
+.chart_wrap.small canvas{ height:100% !important }
+.chart_wrap.tiny canvas{ height:100% !important }
+
+.admin_table{ width:100%; border-collapse:collapse; margin-top:12px }
+.admin_table thead th{ text-align:left; padding:10px; color:var(--muted); font-size:14px }
+.admin_table tbody td{ padding:12px; border-top:1px solid rgba(255,255,255,0.03); font-size:14px }
+.admin_table img{ max-width:48px; border-radius:6px }
+
+.btn{ padding:8px 10px; border-radius:6px; border:none; cursor:pointer; margin-right:6px; font-size:13px }
+.btn-ban{ background:#ef4444; color:#fff }
+.btn-promote{ background:#f59e0b; color:#fff }
+.btn-verify{ background:#10b981; color:#fff }
+.btn-del{ background:#ef4444; color:#fff }
+.btn-feature{ background:#6366f1; color:#fff }
+.btn-dismiss{ background:#6b7280; color:#fff }
+
+.transactions_list{ max-height:420px; overflow:auto; padding:8px }
+.tx_row{ padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.02); color:var(--muted) }
+
+/* Controls (search / filters) */
+.table_controls{ display:flex; gap:10px; align-items:center; margin:10px 0 6px; }
+.table_controls input[type="search"], .table_controls input[type="number"], .table_controls select{
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding:8px 10px;
+    color:#fff;
+    border-radius:8px;
+    outline:none;
+    font-size:13px;
+}
+.table_controls input[type="search"]{ min-width:240px; flex:1; }
+.table_controls input[type="number"]{ background-clip:padding-box; }
+.table_controls select{ min-width:140px; }
+.table_controls input::placeholder{ color: rgba(255,255,255,0.35); }
+.table_controls input[type="search"]:focus, .table_controls input[type="number"]:focus, .table_controls select:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(0,217,255,0.06);
+}
+
+/* Dark select/option styles and custom accent arrow; keep number inputs clean */
+.table_controls select{
+    color: #fff;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding-right: 36px;
+    border-radius: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'><path fill='%2300d9ff' d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+.table_controls select option{
+    color: #fff;
+    background: var(--card);
+}
+
+/* Remove number input arrows (cleaner look in this UI) */
+.table_controls input[type="number"]::-webkit-outer-spin-button,
+.table_controls input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.table_controls input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.actions_cell{ min-width:220px }
+
+/* Verification Requests Table Styles */
+/* Verification Requests Table Styles */
+#verificationsTable .approve_btn, #verificationsTable .reject_btn, #verificationsTable .confirm_btn {
+    background: linear-gradient(90deg, #10b981 0%, #4ea1ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.10);
+}
+#verificationsTable .approve_btn:hover {
+    background: linear-gradient(90deg, #10b981 0%, #3578c7 100%);
+}
+#verificationsTable .reject_btn {
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 100%);
+}
+#verificationsTable .reject_btn:hover {
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+}
+#verificationsTable .confirm_btn {
+    background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
+}
+#verificationsTable .confirm_btn:hover {
+    background: linear-gradient(90deg, #10b981 0%, #6366f1 100%);
+}
+#verificationsTable .approve_btn.active, #verificationsTable .reject_btn.active,
+#verificationsTable .approve_btn.pressed, #verificationsTable .reject_btn.pressed {
+    box-shadow: 0 0 0 3px #00d9ff99;
+    outline: 2px solid #00d9ff;
+    filter: brightness(1.18);
+    background: linear-gradient(90deg, #00d9ff 0%, #10b981 100%) !important;
+    color: #fff !important;
+    border: 2px solid #00d9ff;
+}
+#verificationsTable td, #verificationsTable th {
+    text-align: center;
+    vertical-align: middle;
+}
+#verificationsTable .img_view_btn {
+    background: #23272f;
+    color: #4ea1ff;
+    border: 1.5px solid #4ea1ff;
+    border-radius: 7px;
+    padding: 6px 16px;
+    font-size: 0.98em;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+#verificationsTable .img_view_btn:hover {
+    background: #4ea1ff;
+    color: #fff;
+}
+
+/* Popup for image preview */
+#imgPopupOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.65);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+#imgPopupBox {
+    background: #23272f;
+    border-radius: 14px;
+    padding: 24px 18px 18px 18px;
+    box-shadow: 0 4px 32px #000a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 90vw;
+    max-height: 80vh;
+}
+#imgPopupBox img {
+    max-width: 420px;
+    max-height: 60vh;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px #0006;
+}
+#imgPopupClose {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 22px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background 0.2s;
+}
+#imgPopupClose:hover {
+    background: #b91c1c;
+}
+
+/* Responsive */
+@media (max-width:900px){
+    .dashboard_container{ flex-direction:column; padding:100px 16px }
+    .dashboard_nav{ width:100%; height:auto; position:relative }
+    .overview_charts{ grid-template-columns: 1fr; }
+    .overview_main_chart .chart_wrap{ height:240px }
+    .table_controls{ flex-direction:column; align-items:stretch }
+    .table_controls input[type="search"]{ min-width:0; width:100% }
+    .table_controls select, .table_controls input[type="number"]{ width:100% }
+}

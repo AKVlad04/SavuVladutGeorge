@@ -22,6 +22,7 @@
         <a href="explore.html" class="explore_button">Explore</a>
         <a href="create.html" class="create_button">Create</a>
         <a href="profile.html" class="profile_button">Profile</a>
+        <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
     </div>
 
     <a href="login.html" class="connect_wallet">
@@ -90,6 +91,9 @@
                     <option value="name_asc">Name (A-Z)</option>
                     <option value="creator_id_asc">Creator ID (Asc)</option>
                 </select>
+            </div>
+            <div class="filter-col">
+                <button id="applyFiltersBtn" class="filter_apply">Apply Filters</button>
             </div>
             
         </div>
@@ -176,6 +180,7 @@
 
     </div>
 <script src="script.js"></script>
+<script src="owner.js"></script>
 
 
 </body>

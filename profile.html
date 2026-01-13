@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="profile.css">
     <title>My Profile - Nexus</title>
+    <script src="script.js" defer></script>
+    <script src="owner.js" defer></script>
 </head>
 <body>
 
@@ -16,6 +18,7 @@
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
             <a href="create.html" class="create_button">Create</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
         </div>
         <a href="logout.php" class="connect_wallet" style="border-color: #ef4444;">
             <span class="connect_wallet_text" style="color: #ef4444;">Logout</span>
@@ -32,7 +35,7 @@
 
             <div class="profile_stats">
                 <div class="stat_box">
-                    <span class="stat_value">User</span>
+                    <span class="stat_value" id="userRole">...</span>
                     <span class="stat_label">Role</span>
                 </div>
                 <div class="stat_box">
@@ -46,6 +49,26 @@
             </div>
 
             <a href="logout.php" class="logout_btn">Sign Out</a>
+            <button id="getVerifiedBtn" class="verify_btn" style="margin-top:18px;">Get Verified</button>
+                <div class="wallet_row">
+                    <label for="walletInput">Wallet address</label>
+                    <div class="wallet_controls">
+                        <input type="text" id="walletInput" placeholder="0x..." />
+                        <button id="saveWallet">Save</button>
+                    </div>
+                    <p id="saveStatus" style="display:none"></p>
+                </div>
+        </div>
+            <div class="owned_section" id="ownedSection" style="width:100%; max-width:1100px; margin-top:30px; display:none">
+                <h2 style="color:#fff; margin-bottom:12px">Your NFTs</h2>
+                <div id="ownedNfts" class="owned_grid"></div>
+            </div>
+    </div>
+
+    <div id="verifyModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:#23272f;padding:32px 28px;border-radius:16px;max-width:350px;width:90vw;color:#fff;box-shadow:0 4px 24px #000a;display:flex;flex-direction:column;align-items:center;">
+            <div id="verifyModalMsg" style="margin-bottom:18px;font-size:1.1em;text-align:center;"></div>
+            <button id="verifyModalOk" class="verify_btn" style="margin-top:8px;">OK</button>
         </div>
     </div>
 
@@ -55,15 +78,80 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.logged_in) {
-                        // Dacă e logat, completăm datele în HTML
                         document.getElementById('userName').textContent = data.username;
+                        // Show checkmark if verified
+                        if (data.is_verified && Number(data.is_verified) === 1) {
+                            const check = document.createElement('span');
+                            check.innerHTML = ' <svg style="vertical-align:middle;margin-left:4px;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#10b981"/><path d="M6 10.5L9 13.5L14 8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                            document.getElementById('userName').appendChild(check);
+                            // Hide verify button if present
+                            const verifyBtn = document.getElementById('getVerifiedBtn');
+                            if (verifyBtn) verifyBtn.style.display = 'none';
+                        } else {
+                            // Check for pending/rejected verification request
+                            fetch('get_verification_status.php')
+                                .then(r => r.json())
+                                .then(vs => {
+                                    const verifyBtn = document.getElementById('getVerifiedBtn');
+                                    if (!verifyBtn) return;
+                                    if (vs.status === 'pending') {
+                                        verifyBtn.textContent = 'Verification Pending';
+                                        verifyBtn.disabled = false;
+                                        verifyBtn.classList.add('btn-disabled');
+                                        verifyBtn.style.opacity = 0.8;
+                                        verifyBtn.onclick = function() {
+                                            showVerifyModal('Your verification request is pending review. Please wait for an admin to approve or reject your request.');
+                                        };
+                                    } else if (vs.status === 'approved') {
+                                        verifyBtn.style.display = 'none';
+                                        // Optionally, show checkmark (already handled above)
+                                    } else if (vs.status === 'rejected') {
+                                        verifyBtn.textContent = 'Verification Rejected';
+                                        verifyBtn.disabled = false;
+                                        verifyBtn.classList.add('btn-disabled');
+                                        verifyBtn.style.opacity = 0.8;
+                                        verifyBtn.onclick = function() {
+                                            showVerifyModal('Your verification request was rejected. You can submit a new request.');
+                                        };
+                                    } else {
+                                        verifyBtn.textContent = 'Get Verified';
+                                        verifyBtn.disabled = false;
+                                        verifyBtn.classList.remove('btn-disabled');
+                                        verifyBtn.style.opacity = 1;
+                                        verifyBtn.onclick = function() {
+                                            window.location.href = 'verify.html';
+                                        };
+                                    }
+                                });
+                        }
                         document.getElementById('userEmail').textContent = data.email;
                         document.getElementById('userStatus').textContent = data.status;
+                        document.getElementById('userRole').textContent = data.role || 'User';
                         document.getElementById('userId').textContent = "#" + data.id;
                         document.getElementById('userAvatar').textContent = data.initial;
                         
                         // Facem cardul vizibil
                         document.getElementById('profileCard').style.opacity = '1';
+
+                        // Load user's owned NFTs and render
+                        fetch('nfts.php').then(r=>r.json()).then(nfts=>{
+                            if (!Array.isArray(nfts)) return;
+                            const owned = nfts.filter(n => n.owner_id && Number(n.owner_id) === Number(data.id));
+                            const ownedSection = document.getElementById('ownedSection');
+                            const ownedGrid = document.getElementById('ownedNfts');
+                            if (owned.length === 0) {
+                                ownedSection.style.display = 'none';
+                                return;
+                            }
+                            ownedSection.style.display = 'block';
+                            ownedGrid.innerHTML = '';
+                            owned.forEach(n => {
+                                const d = document.createElement('div');
+                                d.className = 'owned_item';
+                                d.innerHTML = `<div class="owned_img"><img src="${n.image_url||'img/placeholder.jpg'}" alt="${n.name}"></div><div class="owned_meta"><div class="owned_name">${n.name}</div><div class="owned_price">${n.price} ETH</div></div>`;
+                                ownedGrid.appendChild(d);
+                            });
+                        }).catch(()=>{});
                     } else {
                         // Dacă NU e logat, îl trimitem forțat la Login
                         window.location.href = 'login.html';
@@ -73,8 +161,34 @@
                     console.error('Eroare:', error);
                     window.location.href = 'login.html';
                 });
+            
         });
+        // Modal logic
+        function showVerifyModal(msg) {
+            const modal = document.getElementById('verifyModal');
+            const msgDiv = document.getElementById('verifyModalMsg');
+            const okBtn = document.getElementById('verifyModalOk');
+            msgDiv.textContent = msg;
+            modal.style.display = 'flex';
+            okBtn.onclick = function() {
+                modal.style.display = 'none';
+                // If rejected, allow new request
+                if (msg.includes('rejected')) {
+                    const verifyBtn = document.getElementById('getVerifiedBtn');
+                    if (verifyBtn) {
+                        verifyBtn.textContent = 'Get Verified';
+                        verifyBtn.disabled = false;
+                        verifyBtn.classList.remove('btn-disabled');
+                        verifyBtn.style.opacity = 1;
+                        verifyBtn.onclick = function() {
+                            window.location.href = 'verify.html';
+                        };
+                    }
+                }
+            };
+        }
     </script>
+    
 
 </body>
 </html>

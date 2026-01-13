@@ -19,6 +19,7 @@
             <a href="explore.html" class="explore_button">Explore</a>
             <a href="create.html" class="create_button">Create</a>
             <a href="profile.html" class="profile_button">Profile</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
         </div>
 
         <a href="login.html" class="connect_wallet">
@@ -26,63 +27,36 @@
         </a>
     </header>
 
-    <div class="main_page_contact">
-        <section class="support-content">
-        <h1 class="text_mare_contact">Support Center</h1>
-        <p class="subtitle_contact">Find answers to your frequently asked questions below:</p>
+        <div class="main_page_contact">
+                <div class="how_box">
+                        <div class="support_how">
+                                <h1 class="how_text">Contact Us</h1>
 
-        <div class="faq">
-            <div class="faq-item">
-            <h3>1. How do I create an account on Nexus?</h3>
-            <p>To create an account, access the <a href="login.html">Login</a> page and follow the registration instructions.</p>
-            </div>
+                                <form id="contactForm">
+                                <label for="subiect">Subject</label>
+                                <input type="text" id="subiect" name="subiect" placeholder="What is this regarding?" required>
 
-            <div class="faq-item">
-            <h3>2. How do I buy an NFT?</h3>
-            <p>Once you've logged in, navigate to the <a href="explore.html">Explore</a> section, choose the NFT you want, and follow the purchase steps.</p>
-            </div>
+                                <div class="name-email">
+                                        <div>
+                                        <label for="nume">Full Name</label>
+                                        <input type="text" id="nume" name="nume" placeholder="Your name" required>
+                                        </div>
+                                        <div>
+                                        <label for="adresa_mail">Email</label>
+                                        <input type="email" id="adresa_mail" name="adresa_mail" placeholder="your@email.com" required>
+                                        </div>
+                                </div>
 
-            <div class="faq-item">
-            <h3>3. What payment methods are accepted?</h3>
-            <p>We currently accept payments via bank card and Ethereum-compatible digital wallets.</p>
-            </div>
+                                <label for="mesaj">Message</label>
+                                <textarea id="mesaj" name="mesaj" placeholder="Tell us how we can help..." required></textarea>
 
-            <div class="faq-item">
-            <h3>4. How can I contact support?</h3>
-            <p>You can contact our support team using the contact form below.</p>
-            </div>
-        </div>
-        </section>
+                                <button type="submit" class="submit_btn">Send Message</button>
+                                </form>
 
-        <div class="how_box">
-            <div class="support_how">
-                <h1 class="how_text">Contact Us</h1>
-
-                <form id="contactForm">
-                <label for="subiect">Subject</label>
-                <input type="text" id="subiect" name="subiect" placeholder="What is this regarding?" required>
-
-                <div class="name-email">
-                    <div>
-                    <label for="nume">Full Name</label>
-                    <input type="text" id="nume" name="nume" placeholder="Your name" required>
-                    </div>
-                    <div>
-                    <label for="adresa_mail">Email</label>
-                    <input type="email" id="adresa_mail" name="adresa_mail" placeholder="your@email.com" required>
-                    </div>
+                                <p id="status"></p>
+                        </div>
                 </div>
-
-                <label for="mesaj">Message</label>
-                <textarea id="mesaj" name="mesaj" placeholder="Tell us how we can help..." required></textarea>
-
-                <button type="submit" class="submit_btn">Send Message</button>
-                </form>
-
-                <p id="status"></p>
-            </div>
         </div>
-    </div>
 
     <footer class="footer">
         <div class="footer1">
@@ -141,6 +115,8 @@
   </main>
 
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="owner.js"></script>
+<script src="script.js"></script>
 <script>
   (function() {
     emailjs.init("GQBSuae247lfOoDC0"); 

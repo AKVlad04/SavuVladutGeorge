@@ -1,16 +1,7 @@
-const nftsFromDB = [
-    {"creator_id": 1, "name": "Cyber Dreams #001", "description": "This unique digital artwork presents a captivating vision of a futuristic cyberpunk landscape. Every detail is meticulously handcrafted by talented artists, and the piece is fully secured on the blockchain, ensuring an unalterable proof of authenticity and complete digital ownership.", "price": 2.5, "category": "Digital Art", "image_url": "img/galactic.jpg"},
-    {"creator_id": 4, "name": "Giga Cats #001", "description": "A futuristic feline collectible from the first Giga Cats series, designed with a high level of visual complexity. This piece is highly valuable for collectors, representing a high-resolution digital avatar ready for use across various emerging metaverse platforms.", "price": 1.2, "category": "Collectibles", "image_url": "img/neon.jpg"},
-    {"creator_id": 18, "name": "Genesis Token #008", "description": "This is one of the original Genesis tokens, granting its holder guaranteed exclusive access to future projects, private events, and high-value airdrops. The token represents a core membership key in our ecosystem, which is essential for long-term community involvement and benefits.", "price": 5.0, "category": "Utility", "image_url": "img/echoes.jpg"},
-    {"creator_id": 1, "name": "Cyber Dreams #002", "description": "Another mesmerizing piece from the Cyber Dreams collection, exploring the theme of neon cities and advanced technology. The composition focuses on a sense of digital reverie, created using an electric color palette and impressive architectural detailing.", "price": 2.8, "category": "Digital Art", "image_url": "img/shadow.jpg"},
-    {"creator_id": 19, "name": "Abstract Echo #1", "description": "A dynamic generative art piece, rendered in 3D, that examines the complex interaction between light, motion, and texture. The artwork utilizes a sophisticated algorithm to create an abstract visual echo, making it perfect for high-performance digital displays.", "price": 10.5, "category": "3D Render", "image_url": "img/pixel.jpg"},
-    {"creator_id": 9, "name": "Soundscape Clip #10", "description": "A unique visual representation of a rare and unpublished audio clip. This NFT is a complete audio-visual piece, combining sound art with a dynamic visualization of the waveforms. It offers both aesthetic and historical value for blockchain music collectors.", "price": 0.8, "category": "Music/Audio", "image_url": "img/sonic.jpg"},
-    {"creator_id": 4, "name": "Giga Cats #002", "description": "The second feline collectible from the Giga Cats series, distinguished by a particularly rare color attribute that sets it apart from common pieces. It is a high-value digital asset for the collecting community, ideal for use as a personal avatar.", "price": 1.5, "category": "Collectibles", "image_url": "img/bassline.jpg"},
-    {"creator_id": 18, "name": "Genesis Token #009", "description": "The third Genesis token issued, which grants voting power and governance rights to the holder within the Decentralized Autonomous Organization (DAO). The token ensures continuous access to exclusive utilities and major decision-making within our digital ecosystem.", "price": 3.2, "category": "Utility", "image_url": "img/virtual.jpg"},
-    {"creator_id": 47, "name": "Rogue Vest #01", "description": "A wearable digital clothing item (wearable NFT) in the form of a stylized vest, compatible with a wide range of metaverse platforms. It combines high-fashion aesthetics with the practical utility of a distinctive digital accessory.", "price": 4.0, "category": "Fashion/Wearables", "image_url": "img/crystal.jpg"},
-    {"creator_id": 45, "name": "Deep Space View", "description": "A high-resolution digital painting that captures a spectacular cosmic scene, featuring a vibrant nebula in the foreground. This work evokes the mystery and vastness of the universe, making it an ideal centerpiece for any space-themed digital art collection.", "price": 3.0, "category": "Digital Art", "image_url": "img/digital.jpg"},
-    {"creator_id": 62, "name": "Crypto-Key #A1", "description": "An extremely limited access key (Utility NFT) that permits entry to an exclusive platform or a premium digital service. This key is essential for unlocking advanced functionalities and is the first in a short series of emissions.", "price": 7.5, "category": "Utility/Access", "image_url": "img/oceanic.jpg"},
-    {"creator_id": 62, "name": "Crypto-Key #A2", "description": "The second access key issued by the same creator, offering the exact same platform access privileges. Owning both keys may provide additional loyalty bonuses or discounts on future services offered by the ecosystem.", "price": 7.5, "category": "Utility/Access", "image_url": "img/retro.jpg"}
+const mockNFTs = [
+    {"creator_id": 1, "name": "Cyber Dreams #001", "description": "This unique digital artwork presents a captivating vision of a futuristic cyberpunk landscape.", "price": 2.5, "category": "Digital Art", "image_url": "img/galactic.jpg"},
+    {"creator_id": 4, "name": "Giga Cats #001", "description": "A futuristic feline collectible from the first Giga Cats series.", "price": 1.2, "category": "Collectibles", "image_url": "img/neon.jpg"},
+    {"creator_id": 18, "name": "Genesis Token #008", "description": "One of the original Genesis tokens.", "price": 5.0, "category": "Utility", "image_url": "img/echoes.jpg"}
 ];
     
 // --- LOGICA PENTRU NFT-URI ȘI INTERFAȚĂ ---
@@ -41,23 +32,46 @@ if (container) {
     const priceRangeFilterSelect = document.getElementById('priceRangeFilter');
     const sortBySelect = document.getElementById('sortBy');
 
-    let currentNFTs = [...nftsFromDB]; 
+    let currentNFTs = [];
+    let nftsFromDB = [];
+    const searchInputMain = document.getElementById('search_bar');
+    const searchInputExplore = document.getElementById('search_bar_explore');
+
+    // Load NFTs from server, fallback to mock data
+    fetch('nfts.php').then(r => r.json()).then(data => {
+        if (Array.isArray(data) && data.length > 0) nftsFromDB = data;
+        else nftsFromDB = mockNFTs;
+        // On main page show only featured; on explore show all
+        const isIndex = !!document.getElementById('search_bar');
+        if (isIndex) {
+            currentNFTs = nftsFromDB.filter(n => parseInt(n.is_featured) === 1);
+        } else {
+            currentNFTs = nftsFromDB.slice();
+        }
+        populateCategories();
+        renderNFTs(currentNFTs);
+    }).catch(err => {
+        console.warn('Could not load nfts.php, using mock', err);
+        nftsFromDB = mockNFTs;
+        const isIndex = !!document.getElementById('search_bar');
+        if (isIndex) currentNFTs = nftsFromDB.filter(n => n.is_featured && parseInt(n.is_featured) === 1);
+        else currentNFTs = nftsFromDB.slice();
+        populateCategories();
+        renderNFTs(currentNFTs);
+    });
 
     // Functie pentru a genera optiile de categorii in box
     function populateCategories() {
         if (!categoryFilterSelect) return;
-        
-        const categories = [...new Set(nftsFromDB.map(nft => nft.category))].sort();
-        // Ne asigurăm că există măcar o categorie "All"
-        if (categoryFilterSelect.options.length === 1 && categoryFilterSelect.options[0].value === "") {
-            // Dacă elementul "All Categories" există, nu-l adăugăm din nou
-        } else {
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "All Categories";
-            categoryFilterSelect.appendChild(defaultOption);
-        }
-        
+        // populate from full DB set if available, otherwise from current render set
+        const source = (Array.isArray(nftsFromDB) && nftsFromDB.length) ? nftsFromDB : currentNFTs;
+        const categories = [...new Set(source.map(nft => nft.category || ''))].filter(Boolean).sort();
+        // reset existing options (preserves first placeholder if present)
+        categoryFilterSelect.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'All Categories';
+        categoryFilterSelect.appendChild(defaultOption);
         categories.forEach(category => {
             const option = document.createElement('option');
             option.value = category;
@@ -159,34 +173,51 @@ if (container) {
         const category = categoryFilterSelect.value;
         const priceRange = priceRangeFilterSelect.value;
         const sortBy = sortBySelect.value;
-        
+        const searchTerm = (searchInputMain && searchInputMain.value || searchInputExplore && searchInputExplore.value || '').toLowerCase().trim();
+
         // Parsarea intervalului de preț
         let minPrice = 0;
         let maxPrice = Infinity;
-        if (priceRange !== '0-max') {
+        if (priceRange && priceRange !== '0-max') {
             const parts = priceRange.split('-');
-            minPrice = parseFloat(parts[0]);
-            maxPrice = parts[1] === 'max' ? Infinity : parseFloat(parts[1]);
+            minPrice = parseFloat(parts[0]) || 0;
+            maxPrice = parts[1] === 'max' ? Infinity : parseFloat(parts[1]) || Infinity;
         }
-        
-        // 1. Filtrare
-        let filteredNFTs = nftsFromDB.filter(nft => {
-            const matchesCategory = !category || nft.category === category;
-            const matchesPrice = nft.price >= minPrice && nft.price <= maxPrice;
+
+        // start from DB source
+        let filteredNFTs = Array.isArray(nftsFromDB) ? nftsFromDB.slice() : [];
+
+        // If on index, only featured
+        const isIndex = !!document.getElementById('search_bar');
+        if (isIndex) filteredNFTs = filteredNFTs.filter(n => parseInt(n.is_featured) === 1);
+
+        // category & price filters
+        filteredNFTs = filteredNFTs.filter(nft => {
+            const matchesCategory = !category || (nft.category === category);
+            const price = parseFloat(nft.price) || 0;
+            const matchesPrice = price >= minPrice && price <= maxPrice;
             return matchesCategory && matchesPrice;
         });
-        
-        // 2. Sortare
+
+        // search
+        if (searchTerm) {
+            filteredNFTs = filteredNFTs.filter(n => {
+                const s = ((n.name||'') + ' ' + (n.category||'') + ' ' + (n.creator||'') + ' ' + (n.owner||'')).toLowerCase();
+                return s.indexOf(searchTerm) !== -1;
+            });
+        }
+
+        // sort
         filteredNFTs.sort((a, b) => {
             switch (sortBy) {
             case 'price_asc':
-                return a.price - b.price;
+                return (parseFloat(a.price)||0) - (parseFloat(b.price)||0);
             case 'price_desc':
-                return b.price - a.price;
+                return (parseFloat(b.price)||0) - (parseFloat(a.price)||0);
             case 'name_asc':
-                return a.name.localeCompare(b.name);
+                return (a.name||'').localeCompare(b.name||'');
             case 'creator_id_asc':
-                return a.creator_id - b.creator_id;
+                return (a.creator_id||0) - (b.creator_id||0);
             default:
                 return 0; 
             }
@@ -196,14 +227,24 @@ if (container) {
         renderNFTs(currentNFTs);
     }
 
-    // Initializare
-    populateCategories();
-    renderNFTs(nftsFromDB);
+    // Initial render happens after fetching nfts (above)
 
     // Event Listeners pentru filtre
     if (categoryFilterSelect) categoryFilterSelect.addEventListener('change', applyFiltersAndSort);
     if (priceRangeFilterSelect) priceRangeFilterSelect.addEventListener('change', applyFiltersAndSort);
     if (sortBySelect) sortBySelect.addEventListener('change', applyFiltersAndSort);
+    // search inputs (realtime + Enter to apply)
+    const deb = (fn, ms=200)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms);} };
+    if (searchInputMain) searchInputMain.addEventListener('input', deb(()=>applyFiltersAndSort()));
+    if (searchInputExplore) searchInputExplore.addEventListener('input', deb(()=>applyFiltersAndSort()));
+    [searchInputMain, searchInputExplore].forEach(inp=>{
+        if (!inp) return;
+        inp.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); applyFiltersAndSort(); } });
+    });
+
+    // Apply Filters button
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', (e)=>{ e.preventDefault(); applyFiltersAndSort(); });
 
     // Buton Filtre
     if (filterButtonDiv) {
@@ -231,6 +272,10 @@ if (container) {
 // --- LOGICA DE AUTHENTICARE (Login <-> Logout Transform) ---
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Hide auth and create buttons until auth check completes
+    document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+        el.style.visibility = 'hidden';
+    });
     const loginBtnLink = document.querySelector('.connect_wallet'); 
     const loginBtnText = document.querySelector('.connect_wallet_text');
     const profileMenuBtn = document.querySelector('.profile_button'); 
@@ -283,10 +328,65 @@ document.addEventListener("DOMContentLoaded", () => {
                     profileMenuBtn.style.display = 'none';
                 }
             }
+
+            // Ascunde tab-ul de Create dacă userul nu e verificat
+            if (!data.is_verified || Number(data.is_verified) !== 1) {
+                document.querySelectorAll('a.create_button, a[href="create.html"], a.small_button_footer[href="create.html"]').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+
+            // Show auth and create buttons after auth check
+            document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+                el.style.visibility = 'visible';
+            });
         })
         .catch(error => {
             console.error('Eroare JS Auth:', error);
             // Fallback la Guest Mode
             if (profileMenuBtn) profileMenuBtn.style.display = 'none';
+            document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+                el.style.visibility = 'visible';
+            });
         });
+
+    // Profile wallet load/save (only on profile page where inputs exist)
+    const walletInput = document.getElementById('walletInput');
+    const saveBtn = document.getElementById('saveWallet');
+    const saveStatus = document.getElementById('saveStatus');
+    if (walletInput && saveBtn) {
+        fetch('get_profile.php')
+            .then(r => r.ok ? r.json() : Promise.reject('no-profile'))
+            .then(data => {
+                if (data && data.wallet) walletInput.value = data.wallet;
+            })
+            .catch(e => console.warn('Could not load wallet:', e));
+
+        saveBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (saveStatus) { saveStatus.style.display = 'none'; }
+            const wallet = walletInput.value.trim();
+            const form = new FormData();
+            form.append('wallet', wallet);
+            try {
+            console.log('Sending wallet update', wallet);
+                const resp = await fetch('update_profile.php', { method: 'POST', body: form, credentials: 'include' });
+                const text = await resp.text();
+                let json = {};
+                try { json = JSON.parse(text); } catch (parseErr) { console.warn('update_profile: invalid JSON', text); }
+                console.log('update_profile response', resp.status, json, text);
+                if (resp.ok && json.ok) {
+                    if (saveStatus) { saveStatus.style.display = 'block'; saveStatus.textContent = 'Saved'; saveStatus.style.color = 'green'; }
+                } else {
+                    const msg = json.error || ('HTTP ' + resp.status);
+                    if (saveStatus) { saveStatus.style.display = 'block'; saveStatus.textContent = msg; saveStatus.style.color = 'red'; }
+                    console.error('Failed saving wallet:', msg);
+                }
+            } catch (err) {
+                console.error('Network error saving wallet', err);
+                if (saveStatus) { saveStatus.style.display = 'block'; saveStatus.textContent = 'Network error'; saveStatus.style.color = 'red'; }
+            }
+            setTimeout(() => { if (saveStatus) saveStatus.style.display = 'none'; }, 5000);
+        });
+    }
 });

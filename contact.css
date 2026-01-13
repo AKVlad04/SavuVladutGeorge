@@ -3,6 +3,7 @@
   position: relative;
   z-index: 2;
   padding-bottom: 50px;
+  margin-top: 50px; /* Adăugat pentru a împinge formularul de contact mai jos */
 }
 
 .support-content {

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Get Verified - Nexus</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <header class="top_bar">
+        <a href="index.html" class="logo">
+            <span class="nexus_logo">N</span>
+            <span class="nexus">Nexus</span>
+        </a>
+        <div class="buttons_footer">
+            <a href="index.html" class="home_button">Home</a>
+            <a href="explore.html" class="explore_button">Explore</a>
+            <a href="create.html" class="create_button">Create</a>
+            <a href="profile.html" class="profile_button">Profile</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
+        </div>
+        <a href="login.html" class="connect_wallet">
+            <span class="connect_wallet_text">Login</span>
+        </a>
+    </header>
+    <div class="verify_container">
+        <h1 class="verify_title">Request Verification</h1>
+        <form id="verifyForm" enctype="multipart/form-data">
+            <label for="verify_image">Upload ID/Document (JPEG/PNG):</label>
+            <input type="file" id="verify_image" name="verify_image" accept="image/*" required>
+            <label for="description">Short Description:</label>
+            <textarea id="description" name="description" placeholder="Why do you want to be verified?" required></textarea>
+            <button type="submit" class="verify_btn">Request Verification</button>
+        </form>
+        <div id="verify_status"></div>
+    </div>
+    <footer class="footer">
+        <div class="footer1">
+            <div class = "footer11">
+            <span class="nexus_logo">N</span>
+            <span class="footer_text_big">Nexus</span>
+            </div>
+            <div class="footer12">
+                <span class="footer_text">The future of digital art collecting. Discover, collect, and trade unique NFTs.</span>
+            </div>
+        </div>
+        <div class="footer2">
+            <span class="footer_text_big">Marketplace</span>
+            <a href="explore.html" class="small_button_footer">Explore</a>
+            <a href="create.html" class="small_button_footer">Create</a>
+            <a href="collections.html" class="small_button_footer">Collections</a>
+        </div>
+        <div class="footer3">
+            <span class="footer_text_big">Resources</span>
+            <a href="helpcenter.html" class="small_button_footer">Help Center</a>
+            <a href="contact.html" class="small_button_footer">Contact</a>
+            <a href="newsletter.html" class="small_button_footer">Newsletter</a>
+        </div>
+        <div class="footer4">
+            <span class="footer_text_big">Community</span>
+            <div class="footer41">
+            <a href="https://www.twitter.com" class="twitter">
+                <!-- ...existing code... -->
+            </a>
+            <a href="https://www.twitter.com" class="message">
+                <!-- ...existing code... -->
+            </a>
+            <a href="https://github.com/AKVlad04/SavuVladutGeorge" class="github">
+                <!-- ...existing code... -->
+            </a>
+        </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+    document.getElementById('verifyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = document.getElementById('verifyForm');
+        const status = document.getElementById('verify_status');
+        status.textContent = '';
+        const fd = new FormData(form);
+        fetch('submit_verification.php', {
+            method: 'POST',
+            body: fd
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.ok) {
+                status.style.color = '#10b981';
+                status.textContent = 'Verification request submitted! You will be notified after review.';
+                form.reset();
+            } else {
+                status.style.color = '#ef4444';
+                status.textContent = d.error || 'Submission failed.';
+            }
+        })
+        .catch(() => {
+            status.style.color = '#ef4444';
+            status.textContent = 'Network error.';
+        });
+    });
+    </script>
+</body>
+</html>

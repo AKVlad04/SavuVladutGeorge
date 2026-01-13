@@ -11,10 +11,11 @@
 }
 
 .explore_page_text{
-    margin: 0 0 0 100px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    align-self: flex-start;
     gap: 25px;
 }
 
@@ -31,14 +32,17 @@
 
 
 .search_explore {
-    margin: 0 0 0 100px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
-    align-self: flex-start;
     gap: 10px;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #search_bar_explore {
-    width: 1115px; 
+    flex: 1 1 auto;
     padding: 15px;
     font-size: 18px;
     color: #fff;
@@ -47,7 +51,6 @@
     box-shadow: 0 0 0 0.6px #35d8f6;
     border-radius: 8px;
     outline: none;
-    flex-shrink: 0;
     height: 50px;
 }
 
@@ -92,8 +95,9 @@
     border: 1px solid #35d8f6;
     border-radius: 8px;
     padding: 20px;
-    width: 900px;
-    max-width: 90%;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 200;
     text-align: left;

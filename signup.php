@@ -30,10 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Inserare
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO users (username, email, password, status) VALUES (?, ?, ?, 'active')";
+
+        // Determinăm rolul: dacă nu există niciun user, primul devine 'owner', altfel 'user'
+        $countStmt = $pdo->query("SELECT COUNT(*) FROM users");
+        $userCount = (int)$countStmt->fetchColumn();
+        $role = ($userCount === 0) ? 'owner' : 'user';
+
+        $sql = "INSERT INTO users (username, email, password, status, role) VALUES (?, ?, ?, 'active', ?)";
         $stmt = $pdo->prepare($sql);
         
-        if ($stmt->execute([$username, $email, $hashed_password])) {
+        if ($stmt->execute([$username, $email, $hashed_password, $role])) {
             header("Location: login.html?success=registered");
             exit();
         } else {

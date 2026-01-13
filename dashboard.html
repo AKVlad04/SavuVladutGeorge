@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <title>Owner Dashboard - Nexus</title>
+</head>
+<body>
+
+    <header class="top_bar">
+        <a href="index.html" class="logo">
+            <span class="nexus_logo">N</span>
+            <span class="nexus">Nexus</span>
+        </a>
+        <div class="buttons_footer">
+            <a href="index.html" class="home_button">Home</a>
+            <a href="explore.html" class="explore_button">Explore</a>
+            <a href="create.html" class="create_button">Create</a>
+            <a href="profile.html" class="profile_button">Profile</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
+        </div>
+
+        <a href="login.html" class="connect_wallet">
+            <span class="connect_wallet_text">Login</span>
+        </a>
+    </header>
+
+    <main class="dashboard_page">
+        <div class="dashboard_container">
+            <aside class="dashboard_nav">
+                <ul>
+                    <li data-panel="overview" class="active">Overview</li>
+                    <li data-panel="users">User Management</li>
+                    <li data-panel="nfts">NFT Management</li>
+                    <li data-panel="reports">Reports / Moderation</li>
+                    <li data-panel="transactions">Transactions</li>
+                    <li data-panel="verifications">Verification Requests</li>
+                </ul>
+            </aside>
+
+            <section class="dashboard_main">
+                <!-- Overview -->
+                <div id="panel-overview" class="dashboard_panel">
+                    <h2>Overview</h2>
+                    <div class="cards_row">
+                        <div class="stat_card">
+                            <div class="stat_value" id="statUsers">0</div>
+                            <div class="stat_label">Total Users</div>
+                        </div>
+                        <div class="stat_card">
+                            <div class="stat_value" id="statNFTs">0</div>
+                            <div class="stat_label">Total NFTs</div>
+                        </div>
+                        <div class="stat_card">
+                            <div class="stat_value" id="statVolume">0 ETH</div>
+                            <div class="stat_label">Total Volume</div>
+                        </div>
+                    </div>
+
+                    <div class="chart_card">
+                        <h3>Overview Charts</h3>
+                        <div class="overview_charts">
+                            <div class="overview_main_chart">
+                                <h4>Sales Volume (Last 30 days)</h4>
+                                <div class="chart_wrap"><canvas id="salesChart"></canvas></div>
+                            </div>
+                            <div class="overview_side_charts">
+                                <div class="small_card">
+                                    <h4>NFT Categories Distribution</h4>
+                                    <div class="chart_wrap small" style="height:180px"><canvas id="categoriesChart"></canvas></div>
+                                </div>
+                                <div class="small_card">
+                                    <h4>Minting Activity (Daily)</h4>
+                                    <div class="chart_wrap tiny" style="height:120px"><canvas id="mintChart"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management -->
+                <div id="panel-users" class="dashboard_panel" style="display:none">
+                    <h2>User Management</h2>
+                    <div class="table_controls" id="usersControls">
+                        <input type="search" id="userSearch" placeholder="Search users (username, email)" />
+                        <select id="userStatusFilter">
+                            <option value="all">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="banned">Banned</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <table class="admin_table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username / Email</th>
+                                <th>Wallet</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- NFT Management -->
+                <div id="panel-nfts" class="dashboard_panel" style="display:none">
+                    <h2>NFT Management</h2>
+                    <div class="table_controls" id="nftsControls">
+                        <input type="search" id="nftSearch" placeholder="Search NFTs (name, creator, owner)" />
+                        <input type="number" id="nftPriceMin" placeholder="Min price" step="0.01" style="width:90px" />
+                        <input type="number" id="nftPriceMax" placeholder="Max price" step="0.01" style="width:90px" />
+                    </div>
+                    <table class="admin_table" id="nftsTable">
+                        <thead>
+                            <tr>
+                                <th>Thumbnail</th>
+                                <th>Name</th>
+                                <th>Creator</th>
+                                <th>Owner</th>
+                                <th>Price</th>
+                                <th>Date Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Reports / Moderation -->
+                <div id="panel-reports" class="dashboard_panel" style="display:none">
+                    <h2>Reports / Moderation</h2>
+                    <table class="admin_table" id="reportsTable">
+                        <thead>
+                            <tr>
+                                <th>Reported Item</th>
+                                <th>Reason</th>
+                                <th>Reported By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Transactions -->
+                <div id="panel-transactions" class="dashboard_panel" style="display:none">
+                    <h2>Transactions</h2>
+                    <div id="transactionsList" class="transactions_list"></div>
+                </div>
+
+
+                <!-- Verification Requests -->
+                <div id="panel-verifications" class="dashboard_panel" style="display:none">
+                    <h2>Verification Requests</h2>
+                    <div id="verificationsTableWrap">
+                        <table class="admin_table" id="verificationsTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Description</th>
+                                    <th>Document</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="imgPopupOverlay">
+                    <div id="imgPopupBox">
+                        <img id="imgPopupImg" src="" alt="Verification Document" />
+                        <button id="imgPopupClose">Close</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="owner.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

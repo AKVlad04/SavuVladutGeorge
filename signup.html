@@ -15,6 +15,7 @@
         <div class="buttons_footer">
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
         </div>
         <a href="login.html" class="connect_wallet">
             <span class="connect_wallet_text">Login</span>
@@ -73,5 +74,6 @@
             else if(err === 'db') alertBox.innerText = "Server error. Try again.";
         }
     </script>
+    <script src="owner.js"></script>
 </body>
 </html>

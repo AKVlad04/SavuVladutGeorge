@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="profile.css">
+    <title>Public Profile - Nexus</title>
+</head>
+<body>
+    <header class="top_bar">
+        <a href="index.html" class="logo">
+            <span class="nexus_logo">N</span>
+            <span class="nexus">Nexus</span>
+        </a>
+        <div class="buttons_footer">
+            <a href="index.html" class="home_button">Home</a>
+            <a href="explore.html" class="explore_button">Explore</a>
+            <a href="create.html" class="create_button">Create</a>
+        </div>
+    </header>
+    <div class="profile_page">
+        <div class="profile_card" id="profileCard" style="opacity: 0; transition: opacity 0.5s;">
+            <div class="profile_avatar" id="userAvatar">?</div>
+            <h1 class="profile_name" id="userName">Loading...</h1>
+            <span class="profile_email" id="userEmail">...</span>
+            <div class="profile_stats">
+                <div class="stat_box">
+                    <span class="stat_value" id="userRole">...</span>
+                    <span class="stat_label">Role</span>
+                </div>
+                <div class="stat_box">
+                    <span class="stat_value" id="userStatus" style="color: #10b981;">...</span>
+                    <span class="stat_label">Status</span>
+                </div>
+                <div class="stat_box">
+                    <span class="stat_value" id="userId">#0</span>
+                    <span class="stat_label">ID</span>
+                </div>
+            </div>
+            <div class="wallet_row">
+                <label>Wallet address</label>
+                <div class="wallet_controls">
+                    <input type="text" id="walletInput" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="owned_section" id="ownedSection" style="width:100%; max-width:1100px; margin-top:30px; display:none">
+            <h2 style="color:#fff; margin-bottom:12px">NFTs Owned</h2>
+            <div id="ownedNfts" class="owned_grid"></div>
+        </div>
+    </div>
+    <script>
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        const username = getQueryParam('user');
+        const id = getQueryParam('id');
+        let url = 'profile_public.php?';
+        if (username) url += 'user=' + encodeURIComponent(username);
+        else if (id) url += 'id=' + encodeURIComponent(id);
+        else {
+            document.getElementById('userName').textContent = 'User not found';
+            return;
+        }
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('userName').textContent = 'User not found';
+                    return;
+                }
+                document.getElementById('userName').textContent = data.username;
+                if (data.is_verified && Number(data.is_verified) === 1) {
+                    const check = document.createElement('span');
+                    check.innerHTML = ' <svg style="vertical-align:middle;margin-left:4px;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#10b981"/><path d="M6 10.5L9 13.5L14 8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    document.getElementById('userName').appendChild(check);
+                }
+                document.getElementById('userEmail').textContent = data.email;
+                document.getElementById('userStatus').textContent = data.status;
+                document.getElementById('userRole').textContent = data.role || 'User';
+                document.getElementById('userId').textContent = '#' + data.id;
+                document.getElementById('userAvatar').textContent = data.username ? data.username.charAt(0).toUpperCase() : '?';
+                document.getElementById('walletInput').value = data.wallet || '';
+                document.getElementById('profileCard').style.opacity = '1';
+                // NFTs
+                const ownedSection = document.getElementById('ownedSection');
+                const ownedGrid = document.getElementById('ownedNfts');
+                if (data.nfts && data.nfts.length > 0) {
+                    ownedSection.style.display = 'block';
+                    ownedGrid.innerHTML = '';
+                    data.nfts.forEach(n => {
+                        const d = document.createElement('div');
+                        d.className = 'owned_item';
+                        d.innerHTML = `<div class="owned_img"><img src="${n.image_url||'img/placeholder.jpg'}" alt="${n.name}"></div><div class="owned_meta"><div class="owned_name">${n.name}</div><div class="owned_price">${n.price} ETH</div></div>`;
+                        ownedGrid.appendChild(d);
+                    });
+                } else {
+                    ownedSection.style.display = 'none';
+                }
+            })
+            .catch(() => {
+                document.getElementById('userName').textContent = 'User not found';
+            });
+    });
+    </script>
+</body>
+</html>

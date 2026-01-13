@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Containerul PHP (Site-ul tău)
   website:
     build: .
     ports:
@@ -9,19 +8,24 @@ services:
     volumes:
       - ./:/var/www/html
     depends_on:
-      - db  # Așteaptă ca baza de date să pornească
-    # Am șters 'extra_hosts' - nu mai ai nevoie de el
+      - db
 
-  # Containerul MySQL (Nou adăugat)
   db:
     image: mysql:8.0
     container_name: mysql_container
+    # Această linie forțează metoda de autentificare simplă (veche)
+    command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: parola
       MYSQL_DATABASE: savuvladutgeorge
+      # Permite conexiunea root de oriunde
+      MYSQL_ROOT_HOSTS: '%'
     ports:
-      - "3306:3306" # Opțional: ca să poți vedea baza din Workbench
+      # AICI E TRUCUL: Mapăm portul 3307 de pe laptop la 3306 din container
+      - "3307:3306"
+    volumes:
+      - db_data_new:/var/lib/mysql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -30,6 +34,10 @@ services:
       - '8081:80'
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: parola # Aceeași parolă ca la db
+      MYSQL_ROOT_PASSWORD: parola
     depends_on:
       - db
+
+volumes:
+  # Folosim un nume nou de volum ca să fim siguri că e totul curat
+  db_data_new:

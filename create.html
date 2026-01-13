@@ -22,6 +22,7 @@
         <a href="explore.html" class="explore_button">Explore</a>
         <a href="create.html" class="create_button">Create</a>
         <a href="profile.html" class="profile_button">Profile</a>
+        <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
     </div>
 
     <a href = "login.html" class = "connect_wallet">
@@ -30,23 +31,41 @@
 
     </header>
 
+    <script>
+        // Inline check for owner — falls back if owner.js didn't run
+        fetch('check_auth.php')
+            .then(r => r.json())
+            .then(d => {
+                console.log('create inline check_auth:', d);
+                if (d.logged_in && d.role && d.role.toLowerCase() === 'owner') {
+                    const el = document.getElementById('ownerDashboardLink');
+                    if (el) {
+                        el.className = 'profile_button';
+                        el.style.setProperty('display', 'inline-block', 'important');
+                        el.style.visibility = 'visible';
+                        console.log('create inline: revealed dashboard link');
+                    }
+                }
+            })
+            .catch(err => console.error('create inline check error', err));
+    </script>
+
     <div class="create_page">
         <h1 class="create_new">Create New NFT</h1>
         <span class="upload_text">Upload your work and set up your digital collectible</span>
 
     <div class="upload_container">
         <span class="upload_file">Upload File</span>
-        <div class="upload_box">
+        <div class="upload_box" id="uploadBox">
             <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-upload">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4">
-                </path>
-                <polyline points="17 8 12 3 7 8">
-                </polyline>
-                <line x1="12" x2="12" y1="3" y2="15">
-                </line>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" x2="12" y1="3" y2="15"></line>
             </svg>
             <span class="drag_text">Drag & Drop your file here</span>
             <span class="file_types">PNG, JPG, GIF, WEBP or MP4. Max 100mb.</span>
+            <input type="file" id="nftFile" name="nftFile" accept="image/png,image/jpeg,image/gif,image/webp,video/mp4" style="margin-top:12px;" required />
+            <div id="filePreview" style="margin-top:10px;"></div>
         </div>
     </div>
     <div class="nft_details">
@@ -60,14 +79,111 @@
             <input type="number" id="nftPrice" name="nftPrice" placeholder="0.00" required>
 
             <span class="details_category">Category</span>
-                <select id="categoryFilter">
-                    <option value="">All Categories</option>
+                <select id="categoryFilter" required>
+                    <option value="">Select category</option>
                 </select>
             
     </div>
-            <button type="submit" class="create_nft_button">Create NFT</button>
+            <button type="submit" id="createNftBtn" class="create_nft_button">Create NFT</button>
+            <div id="createMsg" style="margin-top:16px;color:#fff;"></div>
 </div>
+
 <script src="script.js"></script>
+<script src="owner.js"></script>
+<script>
+// Disable create button for unverified users
+(function(){
+    const btn = document.getElementById('createNftBtn');
+    if (!btn) return;
+    fetch('get_profile.php')
+        .then(r => r.ok ? r.json() : Promise.reject('no-profile'))
+        .then(d => {
+            const verified = (d && typeof d.is_verified !== 'undefined') ? Boolean(Number(d.is_verified)) : false;
+            if (!verified) {
+                btn.disabled = true;
+                btn.title = 'You must be a verified creator to create NFTs';
+                btn.classList.add('btn-disabled');
+            }
+        }).catch(()=>{
+            btn.disabled = true;
+            btn.title = 'Sign in as a verified creator to create NFTs';
+            btn.classList.add('btn-disabled');
+        });
+})();
+
+// Populate categories
+fetch('get_categories.php').then(r=>r.json()).then(cats=>{
+    const sel = document.getElementById('categoryFilter');
+    if (!Array.isArray(cats)) return;
+    sel.innerHTML = '<option value="">Select category</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+});
+
+// File preview
+document.getElementById('nftFile').addEventListener('change', function(e){
+    const file = this.files[0];
+    const prev = document.getElementById('filePreview');
+    prev.innerHTML = '';
+    if (!file) return;
+    if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.maxWidth = '120px';
+        img.style.maxHeight = '120px';
+        prev.appendChild(img);
+    } else if (file.type === 'video/mp4') {
+        const vid = document.createElement('video');
+        vid.src = URL.createObjectURL(file);
+        vid.controls = true;
+        vid.style.maxWidth = '120px';
+        vid.style.maxHeight = '120px';
+        prev.appendChild(vid);
+    }
+});
+
+// Handle create NFT
+document.getElementById('createNftBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    const msg = document.getElementById('createMsg');
+    msg.textContent = '';
+    const file = document.getElementById('nftFile').files[0];
+    const title = document.getElementById('nftTitle').value.trim();
+    const desc = document.getElementById('nftDescription').value.trim();
+    const price = document.getElementById('nftPrice').value.trim();
+    const cat = document.getElementById('categoryFilter').value;
+    if (!file || !title || !price || !cat) {
+        msg.textContent = 'All fields are required!';
+        return;
+    }
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('title', title);
+    fd.append('description', desc);
+    fd.append('price', price);
+    fd.append('category', cat);
+    this.disabled = true;
+    msg.textContent = 'Uploading...';
+    fetch('create_nft.php', {
+        method: 'POST',
+        body: fd
+    }).then(r=>r.json()).then(d=>{
+        if (d.ok) {
+            msg.textContent = 'NFT created successfully!';
+            document.getElementById('nftTitle').value = '';
+            document.getElementById('nftDescription').value = '';
+            document.getElementById('nftPrice').value = '';
+            document.getElementById('categoryFilter').selectedIndex = 0;
+            document.getElementById('nftFile').value = '';
+            document.getElementById('filePreview').innerHTML = '';
+        } else {
+            msg.textContent = d.error || 'Error creating NFT.';
+        }
+        this.disabled = false;
+    }).catch(()=>{
+        msg.textContent = 'Error creating NFT.';
+        this.disabled = false;
+    });
+});
+</script>
 
 
 </body>

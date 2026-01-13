@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         // Căutăm userul
-        $stmt = $pdo->prepare("SELECT id, username, password, status FROM users WHERE email = ?");
+        $stmt = $pdo->prepare("SELECT id, username, password, status, role FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Salvăm datele în sesiune
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
             
             // REDIRECT CĂTRE PROFIL
             header("Location: profile.html"); 
