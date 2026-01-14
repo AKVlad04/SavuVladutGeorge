@@ -3,7 +3,10 @@
   position: relative;
   z-index: 2;
   padding-bottom: 50px;
-  margin-top: 50px; /* Adăugat pentru a împinge formularul de contact mai jos */
+  margin-top: 120px; /* Împinge formularul de contact sub header-ul fix */
+  border-bottom-width: 0.3px;
+  border-bottom-style: solid;
+  border-bottom-color: #35d8f6; /* Linie albastră deasupra footer-ului, ca pe index */
 }
 
 .support-content {

@@ -6,6 +6,10 @@
     flex-direction: column;
     align-items: center;
     min-height: 60vh;
+    /* Linie albastră deasupra footer-ului, ca pe celelalte pagini */
+    border-bottom-width: 0.3px;
+    border-bottom-style: solid;
+    border-bottom-color: #35d8f6;
 }
 
 .profile_card {
@@ -292,22 +296,28 @@ label[for="walletInput"] {
     display: block;
 }
 
-/* NFT grids on profile: exactly 3 cards per row */
+/* Spațiu lateral suplimentar doar pentru tab-ul Created,
+   ca să nu taie vizual cardurile la margini */
+.profile_tab_panel[data-tab="created"] {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+/* NFT grids pe profil: 3 carduri pe rând (când încape), centrate, fără tăiere */
 .profile_tabs_container .nfts {
-    grid-template-columns: repeat(3, 310px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 30px;
-    padding: 30px 0 150px 0;
-    width: max-content;
+    padding: 30px 20px 150px 20px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
-@media (max-width: 1100px) {
-    .profile_tabs_container .nfts {
-        width: 100%;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        justify-items: center;
-    }
-}
+/* Pe profil, folosim același card ca în Explore,
+   dar puțin mai îngust ca să încapă 3 pe rând confortabil */
+/* Nu modificăm dimensiunea cardului .nft aici, folosim stilul din Explore;
+    doar layout-ul containerului (flex) controlează câte carduri încap pe rând. */
 
 .activity_list {
     color: rgb(156,163,175);
