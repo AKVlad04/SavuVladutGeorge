@@ -66,14 +66,42 @@
                 </div>
                 <p id="saveStatus" style="display:none"></p>
             </div>
-        </div>
-            <div class="owned_section" id="ownedSection" style="width:100%; max-width:1100px; margin-top:30px; display:none">
-                <h2 style="color:#fff; margin-bottom:12px">Your NFTs</h2>
-                <div id="ownedNfts" class="owned_grid"></div>
+            <div class="nft_stats_row">
+                <div class="nft_stat_box">
+                    <span class="nft_stat_label">Collected</span>
+                    <span class="nft_stat_value" id="statCollected">0</span>
+                </div>
+                <div class="nft_stat_box">
+                    <span class="nft_stat_label">Created</span>
+                    <span class="nft_stat_value" id="statCreated">0</span>
+                </div>
+                <div class="nft_stat_box">
+                    <span class="nft_stat_label">Total Value</span>
+                    <span class="nft_stat_value" id="statTotalValue">0 ETH</span>
+                </div>
             </div>
+        </div>
+			<div class="profile_tabs_container" id="profileTabsContainer" style="width:100%; max-width:1100px; margin-top:30px; display:none">
+				<div class="profile_tabs">
+					<button class="profile_tab active" data-tab="collected">Collected</button>
+					<button class="profile_tab" data-tab="created">Created</button>
+					<button class="profile_tab" data-tab="activity">Activity</button>
+				</div>
+				<div class="profile_tab_panels">
+					<div class="profile_tab_panel active" data-tab="collected">
+                        <div id="collectedGrid" class="nfts"></div>
+					</div>
+					<div class="profile_tab_panel" data-tab="created">
+                        <div id="createdGrid" class="nfts"></div>
+					</div>
+					<div class="profile_tab_panel" data-tab="activity">
+						<div id="activityList" class="activity_list"></div>
+					</div>
+				</div>
+			</div>
     </div>
 
-    <!-- NFT Details Popup (reuse global style) -->
+    <!-- NFT Details Popup (same layout as Explore) -->
     <div id="nftPopup" class="popup">
       <div class="popup-content">
         <span class="close">&times;</span>
@@ -85,10 +113,30 @@
         <div class="pop_mare">
             <div class="popup_image_wrapper">
                 <img id="popupImage" src="" alt="NFT preview">
+                <div class="popup_image_actions">
+                    <button id="sendRequestBtn" class="btn btn-primary">Send Request</button>
+                    <button id="wishlistBtn" class="btn btn-secondary wishlist-btn" aria-pressed="false" title="Add to wishlist">
+                        <svg class="wishlist-heart" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="pop_detalii">
                 <p id="popupCategory"></p>
                 <h2 id="popupTitle"></h2>
+
+                <div class="views_pop">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon_eye">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span class="views">2.4k views</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon_heart">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                    </svg>
+                    <span class="likes">567 likes</span>
+                </div>
 
                 <p id="popupDescription"></p>
 
@@ -225,7 +273,7 @@
                         // Facem cardul vizibil
                         document.getElementById('profileCard').style.opacity = '1';
 
-                        // helper to open NFT popup from owned list
+                        // helper to open NFT popup from profile lists
                         function openOwnedNftPopup(nft, username) {
                             const popup = document.getElementById('nftPopup');
                             if (!popup) return;
@@ -236,6 +284,8 @@
                             const popupImg = document.getElementById('popupImage');
                             const popupOwner = document.getElementById('popupOwner');
                             const popupCreator = document.getElementById('popupCreator');
+                            const sendRequestBtn = document.getElementById('sendRequestBtn');
+                            const wishlistBtn = document.getElementById('wishlistBtn');
                             const aproxEl = document.getElementById('aprox');
 
                             popupTitle.textContent = nft.name || '';
@@ -244,55 +294,255 @@
                             popupPrice.textContent = (nft.price || 0) + ' ETH';
                             popupImg.src = nft.image_url || 'img/placeholder.jpg';
 
-                            const ownerNameRaw = nft.owner_name || username || '';
-                            const creatorNameRaw = nft.creator_name || ownerNameRaw || '';
+                            const ownerNameRaw = nft.owner_name || (nft.owner_id ? ('User #' + nft.owner_id) : '');
+                            const creatorNameRaw = nft.creator_name || (nft.creator_id ? ('User #' + nft.creator_id) : '');
 
                             if (popupOwner) {
                                 popupOwner.textContent = ownerNameRaw || '—';
                                 popupOwner.style.cursor = ownerNameRaw ? 'pointer' : 'default';
                                 popupOwner.onclick = null;
-                                if (ownerNameRaw) {
+                                if (ownerNameRaw && !ownerNameRaw.startsWith('User #')) {
                                     popupOwner.onclick = () => {
-                                        window.location.href = 'profile.html';
+                                        const current = window.currentUsername || (data && data.username) || null;
+                                        if (current && current.toLowerCase() === ownerNameRaw.toLowerCase()) {
+                                            window.location.href = 'profile.html';
+                                        } else {
+                                            window.location.href = 'profile_public.html?user=' + encodeURIComponent(ownerNameRaw);
+                                        }
                                     };
                                 }
                             }
 
                             if (popupCreator) {
                                 popupCreator.textContent = creatorNameRaw || '—';
-                                popupCreator.style.cursor = creatorNameRaw ? 'default' : 'default';
+                                popupCreator.style.cursor = creatorNameRaw ? 'pointer' : 'default';
                                 popupCreator.onclick = null;
+                                if (creatorNameRaw && !creatorNameRaw.startsWith('User #')) {
+                                    popupCreator.onclick = () => {
+                                        const current = window.currentUsername || (data && data.username) || null;
+                                        if (current && current.toLowerCase() === creatorNameRaw.toLowerCase()) {
+                                            window.location.href = 'profile.html';
+                                        } else {
+                                            window.location.href = 'profile_public.html?user=' + encodeURIComponent(creatorNameRaw);
+                                        }
+                                    };
+                                }
                             }
 
-                            // simple approximate USD value using static rate
                             const ethVal = parseFloat(nft.price) || 0;
                             const rate = 1900; // fallback USD per ETH
                             if (aproxEl) {
                                 aproxEl.textContent = '≈ $' + (ethVal * rate).toFixed(2) + ' USD';
                             }
 
+                            // Configure Send Request / Place Sell button
+                            if (sendRequestBtn) {
+                                const isOwner = nft.owner_id && Number(nft.owner_id) === Number(data.id);
+                                sendRequestBtn.onclick = null;
+                                if (isOwner) {
+                                    sendRequestBtn.textContent = 'Place Sell';
+                                } else {
+                                    sendRequestBtn.textContent = 'Send Request';
+                                    if (nft.id) {
+                                        sendRequestBtn.onclick = () => {
+                                            const url = 'contact.html?nft_id=' + encodeURIComponent(nft.id);
+                                            window.location.href = url;
+                                        };
+                                    }
+                                }
+                            }
+
+                            // Configure wishlist button in popup
+                            if (wishlistBtn && nft.id) {
+                                wishlistBtn.disabled = false;
+                                fetch('wishlist_status.php?nft_id=' + encodeURIComponent(nft.id))
+                                    .then(r => r.json())
+                                    .then(st => {
+                                        const inW = st && st.in_wishlist;
+                                        wishlistBtn.classList.toggle('active', !!inW);
+                                        wishlistBtn.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                        const allCardBtns = document.querySelectorAll('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                        allCardBtns.forEach(btn => {
+                                            btn.classList.toggle('active', !!inW);
+                                            btn.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                        });
+                                    })
+                                    .catch(() => {});
+
+                                wishlistBtn.onclick = async () => {
+                                    try {
+                                        const resp = await fetch('wishlist_toggle.php', {
+                                            method: 'POST',
+                                            headers: {'Content-Type':'application/json'},
+                                            body: JSON.stringify({nft_id: nft.id})
+                                        });
+                                        const dataToggle = await resp.json();
+                                        if (dataToggle && dataToggle.error === 'not_logged_in') {
+                                            window.location.href = 'login.html';
+                                            return;
+                                        }
+                                        if (dataToggle && dataToggle.ok) {
+                                            const inW = !!dataToggle.in_wishlist;
+                                            wishlistBtn.classList.toggle('active', inW);
+                                            wishlistBtn.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                            const allCardBtns = document.querySelectorAll('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                            allCardBtns.forEach(btn => {
+                                                btn.classList.toggle('active', inW);
+                                                btn.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                            });
+                                        }
+                                    } catch(e2) {
+                                        console.error('profile popup wishlist toggle failed', e2);
+                                    }
+                                };
+                            }
+
                             popup.classList.add('show');
                         }
 
-                        // Load user's owned NFTs and render
-                        fetch('nfts.php').then(r=>r.json()).then(nfts=>{
-                            if (!Array.isArray(nfts)) return;
-                            const owned = nfts.filter(n => n.owner_id && Number(n.owner_id) === Number(data.id));
-                            const ownedSection = document.getElementById('ownedSection');
-                            const ownedGrid = document.getElementById('ownedNfts');
-                            if (owned.length === 0) {
-                                ownedSection.style.display = 'none';
+                        function renderProfileNftGrid(gridEl, list, emptyMsg) {
+                            if (!gridEl) return;
+                            gridEl.innerHTML = '';
+                            if (!Array.isArray(list) || list.length === 0) {
+                                const p = document.createElement('p');
+                                p.className = 'empty_msg';
+                                p.textContent = emptyMsg;
+                                gridEl.appendChild(p);
                                 return;
                             }
-                            ownedSection.style.display = 'block';
-                            ownedGrid.innerHTML = '';
-                            owned.forEach(n => {
-                                const d = document.createElement('div');
-                                d.className = 'owned_item';
-                                d.innerHTML = `<div class="owned_img"><img src="${n.image_url||'img/placeholder.jpg'}" alt="${n.name}"></div><div class="owned_meta"><div class="owned_name">${n.name}</div><div class="owned_price">${n.price} ETH</div></div>`;
-                                d.addEventListener('click', () => openOwnedNftPopup(n, data.username));
-                                ownedGrid.appendChild(d);
+                            list.forEach(n => {
+                                const card = document.createElement('div');
+                                card.className = 'nft';
+                                card.innerHTML = `
+                                    <div class="nft_image">
+                                        <img src="${n.image_url||'img/placeholder.jpg'}" alt="${n.name}">
+                                        <button class="card-wishlist-btn" type="button" data-nft-id="${n.id}" aria-pressed="false" title="Add to wishlist">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="nft_footer">
+                                        <div class="nft_name_cat">
+                                            <span class="nft_name">${n.name}</span>
+                                            <span class="nft_category">${n.category||''}</span>
+                                            <span class="nft_price">${n.price} ETH</span>
+                                        </div>
+                                    </div>
+                                `;
+
+                                const cardWishlistBtn = card.querySelector('.card-wishlist-btn');
+                                if (cardWishlistBtn && n.id) {
+                                    fetch('wishlist_status.php?nft_id=' + encodeURIComponent(n.id))
+                                        .then(r => r.json())
+                                        .then(st => {
+                                            if (st && st.in_wishlist) {
+                                                cardWishlistBtn.classList.add('active');
+                                                cardWishlistBtn.setAttribute('aria-pressed', 'true');
+                                            } else {
+                                                cardWishlistBtn.classList.remove('active');
+                                                cardWishlistBtn.setAttribute('aria-pressed', 'false');
+                                            }
+                                        })
+                                        .catch(() => {});
+
+                                    cardWishlistBtn.addEventListener('click', async (e) => {
+                                        e.stopPropagation();
+                                        try {
+                                            const resp = await fetch('wishlist_toggle.php', {
+                                                method: 'POST',
+                                                headers: {'Content-Type':'application/json'},
+                                                body: JSON.stringify({nft_id: n.id})
+                                            });
+                                            const dataToggle = await resp.json();
+                                            if (dataToggle && dataToggle.error === 'not_logged_in') {
+                                                window.location.href = 'login.html';
+                                                return;
+                                            }
+                                            if (dataToggle && dataToggle.ok) {
+                                                const inW = !!dataToggle.in_wishlist;
+                                                const allCardBtns = document.querySelectorAll('.card-wishlist-btn[data-nft-id="' + n.id + '"]');
+                                                allCardBtns.forEach(btn => {
+                                                    btn.classList.toggle('active', inW);
+                                                    btn.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                                });
+
+                                                const popup = document.getElementById('nftPopup');
+                                                const popupTitle = document.getElementById('popupTitle');
+                                                const wishlistBtnPopup = document.getElementById('wishlistBtn');
+                                                if (popup && popup.classList.contains('show') && wishlistBtnPopup && popupTitle && popupTitle.textContent === (n.name || '')) {
+                                                    wishlistBtnPopup.classList.toggle('active', inW);
+                                                    wishlistBtnPopup.setAttribute('aria-pressed', inW ? 'true' : 'false');
+                                                }
+                                            }
+                                        } catch(e2) {
+                                            console.error('profile card wishlist toggle failed', e2);
+                                        }
+                                    });
+                                }
+
+                                card.addEventListener('click', () => openOwnedNftPopup(n, data.username));
+                                gridEl.appendChild(card);
                             });
+                        }
+
+                        function initProfileTabs() {
+                            const tabButtons = document.querySelectorAll('.profile_tab');
+                            const panels = document.querySelectorAll('.profile_tab_panel');
+                            tabButtons.forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const target = btn.getAttribute('data-tab');
+                                    tabButtons.forEach(b => b.classList.remove('active'));
+                                    btn.classList.add('active');
+                                    panels.forEach(p => {
+                                        if (p.getAttribute('data-tab') === target) {
+                                            p.classList.add('active');
+                                        } else {
+                                            p.classList.remove('active');
+                                        }
+                                    });
+                                });
+                            });
+                        }
+
+                        initProfileTabs();
+
+                        // Load NFTs for profile stats and tabs
+                        fetch('nfts.php').then(r=>r.json()).then(nfts=>{
+                            if (!Array.isArray(nfts)) return;
+
+                            const collected = nfts.filter(n => n.owner_id && Number(n.owner_id) === Number(data.id));
+                            const created = nfts.filter(n => n.creator_id && Number(n.creator_id) === Number(data.id));
+
+                            // stats
+                            const collectedCountEl = document.getElementById('statCollected');
+                            const createdCountEl = document.getElementById('statCreated');
+                            const totalValueEl = document.getElementById('statTotalValue');
+
+                            const totalValue = collected.reduce((sum, n) => sum + (parseFloat(n.price) || 0), 0);
+
+                            if (collectedCountEl) collectedCountEl.textContent = collected.length;
+                            if (createdCountEl) createdCountEl.textContent = created.length;
+                            if (totalValueEl) totalValueEl.textContent = totalValue.toFixed(2) + ' ETH';
+
+                            // grids
+                            const collectedGrid = document.getElementById('collectedGrid');
+                            const createdGrid = document.getElementById('createdGrid');
+                            const activityList = document.getElementById('activityList');
+
+                            renderProfileNftGrid(collectedGrid, collected, 'No collected NFTs yet.');
+                            renderProfileNftGrid(createdGrid, created, 'No created NFTs yet.');
+
+                            if (activityList) {
+                                activityList.innerHTML = '';
+                                const p = document.createElement('p');
+                                p.className = 'empty_msg';
+                                p.textContent = 'No activity yet.';
+                                activityList.appendChild(p);
+                            }
+
+                            const tabsContainer = document.getElementById('profileTabsContainer');
+                            if (tabsContainer) tabsContainer.style.display = 'block';
                         }).catch(()=>{});
                     } else {
                         // Dacă NU e logat, îl trimitem forțat la Login

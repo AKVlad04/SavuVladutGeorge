@@ -1,7 +1,7 @@
 @import url('style.css');
 
 .profile_page {
-    margin: 150px 0 100px 0;
+    margin: 120px 0 80px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -10,8 +10,8 @@
 
 .profile_card {
     background-color: rgb(26, 26, 36);
-    width: 600px;
-    padding: 40px;
+    width: 560px;
+    padding: 28px 32px 24px 32px;
     border-radius: 12px;
     border: 1px solid #35d8f6;
     box-shadow: 0 0 30px rgba(53, 216, 246, 0.15);
@@ -22,14 +22,14 @@
 }
 
 .profile_avatar {
-    width: 120px;
-    height: 120px;
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
     background: linear-gradient(135deg, #00d9ff, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 50px;
+    font-size: 40px;
     color: white;
     font-weight: bold;
     margin-bottom: 20px;
@@ -45,15 +45,16 @@
 }
 
 .profile_email {
-    font-size: 16px;
+    font-size: 14px;
     color: rgb(156, 163, 175);
     margin-bottom: 30px;
 }
 
 .profile_stats {
     display: flex;
-    gap: 40px;
-    margin-bottom: 30px;
+    gap: 32px;
+    margin-top: 12px;
+    margin-bottom: 20px;
     width: 100%;
     justify-content: center;
     border-top: 1px solid #35d8f6;
@@ -67,7 +68,7 @@
 
 .stat_value {
     display: block;
-    font-size: 24px;
+    font-size: 18px;
     color: #00d9ff;
     font-weight: bold;
 }
@@ -148,7 +149,7 @@ label[for="walletInput"] {
 .wallet_row {
     width: 100%;
     max-width: 560px;
-    margin-top: 18px;
+    margin-top: 14px;
 }
 
 .wallet_controls {
@@ -215,6 +216,109 @@ label[for="walletInput"] {
     background: rgba(55,65,81,0.95);
     border-color: #4ea1ff;
     transform: translateY(-1px);
+}
+
+.nft_stats_row {
+    width: 100%;
+    max-width: 560px;
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.nft_stat_box {
+    flex: 1 1 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.5);
+}
+
+.nft_stat_label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(148,163,184);
+    margin-bottom: 4px;
+}
+
+.nft_stat_value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+@media (max-width: 520px) {
+    .nft_stats_row {
+        flex-direction: column;
+    }
+}
+
+.profile_tabs_container {
+    width: 100%;
+}
+
+.profile_tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid rgba(55,65,81,0.9);
+    margin-bottom: 14px;
+}
+
+.profile_tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: rgb(156,163,175);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.profile_tab.active {
+    color: #f9fafb;
+    border-bottom-color: #00d9ff;
+}
+
+.profile_tab_panel {
+    display: none;
+}
+
+.profile_tab_panel.active {
+    display: block;
+}
+
+/* NFT grids on profile: exactly 3 cards per row */
+.profile_tabs_container .nfts {
+    grid-template-columns: repeat(3, 310px);
+    gap: 30px;
+    padding: 30px 0 150px 0;
+    width: max-content;
+    margin: 0 auto;
+}
+
+@media (max-width: 1100px) {
+    .profile_tabs_container .nfts {
+        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        justify-items: center;
+    }
+}
+
+.activity_list {
+    color: rgb(156,163,175);
+    font-size: 14px;
+}
+
+.empty_msg {
+    color: rgb(148,163,184);
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 0;
 }
 
 .account_row {
@@ -361,13 +465,14 @@ label[for="walletInput"] {
 
 /* Owned NFTs grid */
 .owned_section{ margin-top: 24px; }
-.owned_grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
-.owned_item{ background: #0f1114; border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; cursor:pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
-.owned_item:hover{ transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,0.45); border-color: rgba(0,217,255,0.45); }
-.owned_img img{ width:120px; height:120px; object-fit:cover; border-radius:8px }
+.owned_grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap:18px; }
+.owned_item{ background: #0f1114; border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:12px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; cursor:pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; position: relative; }
+.owned_item:hover{ transform: translateY(-4px); box-shadow: 0 10px 22px rgba(0,0,0,0.55); border-color: rgba(0,217,255,0.6); }
+.owned_img{ position: relative; }
+.owned_img img{ width:170px; height:170px; object-fit:cover; border-radius:12px }
 .owned_meta{ color:#fff; width:100% }
-.owned_name{ font-size:13px; margin:6px 0 4px }
-.owned_price{ color:var(--muted); font-size:12px }
+.owned_name{ font-size:14px; margin:6px 0 4px }
+.owned_price{ color:var(--muted); font-size:13px }
 
 .verify_container {
     margin-top: 130px;
