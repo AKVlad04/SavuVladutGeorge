@@ -255,6 +255,33 @@
     box-shadow: 0 0 20px 5px #35d8f6;
 }
 
+/* Responsive layout pentru homepage */
+@media (max-width: 900px) {
+    .search {
+        width: 100%;
+        max-width: 100%;
+        flex-direction: column;
+    }
+    #search_bar {
+        width: 100%;
+        flex-shrink: 1;
+    }
+    .filter_button {
+        width: 100%;
+        justify-content: center;
+    }
+    .filter_box {
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns: 1fr;
+    }
+    .main_cards {
+        flex-wrap: wrap;
+        margin: 30px 10px;
+        justify-content: center;
+    }
+}
+
 /* ANIMAȚII CARDS */
 .cards { animation: fadeRight 0.6s ease forwards, hop 0.4s ease forwards; animation-delay: 0.1s, 0.7s; }
 .cards:nth-child(1) { animation-delay: 0.1s, 0.7s; }

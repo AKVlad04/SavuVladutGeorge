@@ -13,14 +13,15 @@ if (!isset($_SESSION['user_id'])) {
 try {
     $user_id = $_SESSION['user_id'];
     // Check if wallet / avatar columns exist
-    $hasWallet = $pdo->query("SHOW COLUMNS FROM users LIKE 'wallet'")->rowCount() > 0;
-    $hasAvatar = $pdo->query("SHOW COLUMNS FROM users LIKE 'avatar_url'")->rowCount() > 0;
+    $hasWallet  = $pdo->query("SHOW COLUMNS FROM users LIKE 'wallet'")->rowCount() > 0;
+    $hasAvatar  = $pdo->query("SHOW COLUMNS FROM users LIKE 'avatar_url'")->rowCount() > 0;
+    $hasBalance = $pdo->query("SHOW COLUMNS FROM users LIKE 'balance_eth'")->rowCount() > 0;
 
-    if ($hasWallet) {
-        $stmt = $pdo->prepare("SELECT username, email, status, role, wallet FROM users WHERE id = ?");
-    } else {
-        $stmt = $pdo->prepare("SELECT username, email, status, role FROM users WHERE id = ?");
-    }
+    $cols = "username, email, status, role";
+    if ($hasWallet)  { $cols .= ", wallet"; }
+    if ($hasBalance) { $cols .= ", balance_eth"; }
+
+    $stmt = $pdo->prepare("SELECT $cols FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
 
@@ -47,7 +48,12 @@ try {
         } else {
             $out['is_verified'] = 0;
         }
-        if ($hasWallet) $out['wallet'] = isset($user['wallet']) ? $user['wallet'] : '';
+        if ($hasWallet) {
+            $out['wallet'] = isset($user['wallet']) ? $user['wallet'] : '';
+        }
+        if ($hasBalance) {
+            $out['balance_eth'] = isset($user['balance_eth']) ? (float)$user['balance_eth'] : 0.0;
+        }
         if ($hasAvatar) {
             $astmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
             $astmt->execute([$user_id]);

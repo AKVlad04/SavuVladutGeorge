@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     status VARCHAR(20) NOT NULL DEFAULT 'active',
     role VARCHAR(32) NOT NULL DEFAULT 'user',
     wallet VARCHAR(255) DEFAULT NULL,
+    balance_eth DECIMAL(16,8) NOT NULL DEFAULT 0,
     is_verified TINYINT(1) DEFAULT 0
 );
 
@@ -62,6 +63,41 @@ CREATE TABLE IF NOT EXISTS wishlist (
   CONSTRAINT fk_wishlist_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_wishlist_nft FOREIGN KEY (nft_id) REFERENCES nfts(id) ON DELETE CASCADE
 );
+
+-- 9. TRADES TABLE (open and future accepted trades)
+CREATE TABLE IF NOT EXISTS trades (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nft_id INT UNSIGNED NOT NULL,
+  seller_id INT NOT NULL,
+  buyer_id INT DEFAULT NULL,
+  price DECIMAL(16,8) NOT NULL,
+  status ENUM('open','accepted','cancelled') DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  accepted_at DATETIME DEFAULT NULL,
+  PRIMARY KEY (id),
+  INDEX (nft_id),
+  INDEX (seller_id),
+  INDEX (status),
+  CONSTRAINT fk_trades_nft FOREIGN KEY (nft_id) REFERENCES nfts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_trades_seller FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_trades_buyer FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. BALANCE TRANSACTIONS TABLE (deposit / withdraw history)
+CREATE TABLE IF NOT EXISTS balance_transactions (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  type ENUM('deposit','withdraw','buy','sell') NOT NULL,
+  nft_id INT UNSIGNED DEFAULT NULL,
+  nft_name VARCHAR(191) DEFAULT NULL,
+  amount DECIMAL(16,8) NOT NULL,
+  balance_after DECIMAL(16,8) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX (user_id),
+  INDEX (created_at),
+  CONSTRAINT fk_balance_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 6. POPULATE VERIFICATION REQUESTS (optional)
 INSERT INTO verification_requests (user_id, description, image_url, status) VALUES

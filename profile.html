@@ -8,7 +8,7 @@
     <script src="script.js" defer></script>
     <script src="owner.js" defer></script>
 </head>
-<body>
+<body class="profile_owner_page">
 
     <header class="top_bar">
         <a href="index.html" class="logo">
@@ -19,6 +19,7 @@
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
                <a href="wishlist.html" class="wishlist_button">Wishlist</a>
+            <a href="trade.html" class="trades_button">Trades</a>
             <a href="create.html" class="create_button">Mint</a>
             <a href="profile.html" class="profile_button">Profile</a>
             <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
@@ -30,54 +31,70 @@
 
     <div class="profile_page">
         <div class="profile_card" id="profileCard" style="opacity: 0; transition: opacity 0.5s;">
-            
-            <div class="profile_avatar" id="userAvatar">?</div>
-            
-            <h1 class="profile_name" id="userName">Loading...</h1>
-            <span class="profile_email" id="userEmail">...</span>
 
-            <div class="profile_stats">
-                <div class="stat_box">
-                    <span class="stat_value" id="userRole">...</span>
-                    <span class="stat_label">Role</span>
-                </div>
-                <div class="stat_box">
-                    <span class="stat_value" id="userStatus" style="color: #10b981;">...</span>
-                    <span class="stat_label">Status</span>
-                </div>
-                <div class="stat_box">
-                    <span class="stat_value" id="userId">#0</span>
-                    <span class="stat_label">ID</span>
-                </div>
-            </div>
+            <div class="profile_card_main">
+                <div class="profile_main_left">
+                    <div class="profile_avatar" id="userAvatar">?</div>
+                    <h1 class="profile_name" id="userName">Loading...</h1>
+                    <span class="profile_email" id="userEmail">...</span>
 
-            <div class="profile_actions">
-                <button id="accountSettingsBtn" class="account_btn">Account settings</button>
-                <a href="logout.php" class="logout_btn">Sign Out</a>
-            </div>
+                    <div class="profile_actions">
+                        <button id="accountSettingsBtn" class="account_btn">Account settings</button>
+                        <a href="logout.php" class="logout_btn">Sign Out</a>
+                    </div>
 
-            <button id="getVerifiedBtn" class="verify_btn" style="margin-top:18px;">Get Verified</button>
+                    <button id="getVerifiedBtn" class="verify_btn profile_verify_btn">Get Verified</button>
+                </div>
 
-            <div class="wallet_row">
-                <label for="walletInput">Wallet address</label>
-                <div class="wallet_controls">
-                    <input type="text" id="walletInput" placeholder="0x..." />
-                    <button id="saveWallet">Save</button>
-                </div>
-                <p id="saveStatus" style="display:none"></p>
-            </div>
-            <div class="nft_stats_row">
-                <div class="nft_stat_box">
-                    <span class="nft_stat_label">Collected</span>
-                    <span class="nft_stat_value" id="statCollected">0</span>
-                </div>
-                <div class="nft_stat_box">
-                    <span class="nft_stat_label">Created</span>
-                    <span class="nft_stat_value" id="statCreated">0</span>
-                </div>
-                <div class="nft_stat_box">
-                    <span class="nft_stat_label">Total Value</span>
-                    <span class="nft_stat_value" id="statTotalValue">0 ETH</span>
+                <div class="profile_main_right">
+                    <div class="profile_stats">
+                        <div class="stat_box">
+                            <span class="stat_value" id="userRole">...</span>
+                            <span class="stat_label">Role</span>
+                        </div>
+                        <div class="stat_box">
+                            <span class="stat_value" id="userStatus" style="color: #10b981;">...</span>
+                            <span class="stat_label">Status</span>
+                        </div>
+                        <div class="stat_box">
+                            <span class="stat_value" id="userId">#0</span>
+                            <span class="stat_label">ID</span>
+                        </div>
+                    </div>
+
+                    <div class="wallet_row">
+                        <label for="walletInput">Wallet address</label>
+                        <div class="wallet_controls">
+                            <input type="text" id="walletInput" placeholder="0x..." />
+                            <button id="saveWallet">Save</button>
+                        </div>
+                        <p id="saveStatus" style="display:none"></p>
+                    </div>
+
+                    <div class="balance_row">
+                        <label for="balanceDisplay">Account balance</label>
+                        <div class="balance_controls">
+                            <input type="text" id="balanceDisplay" value="0.0000 ETH" readonly />
+                            <button id="depositBtn">Deposit</button>
+                            <button id="withdrawBtn">Withdraw</button>
+                        </div>
+                        <p id="balanceStatus" style="display:none"></p>
+                    </div>
+
+                    <div class="nft_stats_row">
+                        <div class="nft_stat_box">
+                            <span class="nft_stat_label">Collected</span>
+                            <span class="nft_stat_value" id="statCollected">0</span>
+                        </div>
+                        <div class="nft_stat_box">
+                            <span class="nft_stat_label">Created</span>
+                            <span class="nft_stat_value" id="statCreated">0</span>
+                        </div>
+                        <div class="nft_stat_box">
+                            <span class="nft_stat_label">Total Value</span>
+                            <span class="nft_stat_value" id="statTotalValue">0 ETH</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -204,6 +221,19 @@
         </div>
     </div>
 
+    <div id="balanceModal" class="balance_modal_overlay">
+        <div class="balance_modal">
+            <button type="button" class="balance_modal_close">&times;</button>
+            <h3 id="balanceModalTitle" class="balance_modal_title">Deposit ETH</h3>
+            <div class="balance_field">
+                <label for="balanceAmountInput">Amount (ETH)</label>
+                <input type="number" id="balanceAmountInput" min="0" step="0.0001" placeholder="0.0000" />
+                <button id="balanceMaxBtn" type="button" class="balance_max_btn">Max</button>
+            </div>
+            <button id="balanceConfirmBtn" class="balance_confirm_btn">Confirm</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             fetch('get_profile.php')
@@ -270,6 +300,22 @@
                             avatarEl.textContent = data.initial;
                         }
                         
+                        // Balanță cont ETH (imaginară)
+                        const balanceDisplay = document.getElementById('balanceDisplay');
+                        const balanceStatus = document.getElementById('balanceStatus');
+                        let currentBalance = (typeof data.balance_eth !== 'undefined' && data.balance_eth !== null)
+                            ? parseFloat(data.balance_eth)
+                            : 0;
+                        if (isNaN(currentBalance)) currentBalance = 0;
+
+                        function updateBalanceUI() {
+                            if (balanceDisplay) {
+                                balanceDisplay.value = currentBalance.toFixed(4) + ' ETH';
+                            }
+                        }
+
+                        updateBalanceUI();
+
                         // Facem cardul vizibil
                         document.getElementById('profileCard').style.opacity = '1';
 
@@ -341,6 +387,12 @@
                                 sendRequestBtn.onclick = null;
                                 if (isOwner) {
                                     sendRequestBtn.textContent = 'Place Sell';
+                                    if (nft.id) {
+                                        sendRequestBtn.onclick = () => {
+                                            const url = 'trade.html?nft_id=' + encodeURIComponent(nft.id);
+                                            window.location.href = url;
+                                        };
+                                    }
                                 } else {
                                     sendRequestBtn.textContent = 'Send Request';
                                     if (nft.id) {
@@ -507,6 +559,74 @@
 
                         initProfileTabs();
 
+                        function loadActivityList() {
+                            const activityList = document.getElementById('activityList');
+                            if (!activityList) return;
+                            activityList.innerHTML = '';
+                            fetch('get_balance_activity.php')
+                                .then(r => r.ok ? r.json() : Promise.reject())
+                                .then(act => {
+                                    if (!act || !act.ok || !Array.isArray(act.items) || act.items.length === 0) {
+                                        const p = document.createElement('p');
+                                        p.className = 'empty_msg';
+                                        p.textContent = 'No balance activity yet.';
+                                        activityList.appendChild(p);
+                                        return;
+                                    }
+                                    act.items.forEach(item => {
+                                        const row = document.createElement('div');
+
+                                        let kindClass = 'activity_deposit';
+                                        if (item.type === 'withdraw') kindClass = 'activity_withdraw';
+                                        if (item.type === 'buy') kindClass = 'activity_withdraw';
+                                        if (item.type === 'sell') kindClass = 'activity_deposit';
+
+                                        row.className = 'activity_item ' + kindClass;
+
+                                        const left = document.createElement('div');
+                                        left.className = 'activity_left';
+
+                                        const title = document.createElement('div');
+                                        title.className = 'activity_title';
+                                        if (item.type === 'deposit') {
+                                            title.textContent = 'Deposit';
+                                        } else if (item.type === 'withdraw') {
+                                            title.textContent = 'Withdrawal';
+                                        } else if (item.type === 'buy') {
+                                            title.textContent = 'Buy' + (item.nft_name ? ' ' + item.nft_name : '');
+                                        } else if (item.type === 'sell') {
+                                            title.textContent = 'Sell' + (item.nft_name ? ' ' + item.nft_name : '');
+                                        } else {
+                                            title.textContent = item.type;
+                                        }
+
+                                        const date = document.createElement('div');
+                                        date.className = 'activity_date';
+                                        date.textContent = item.created_at || '';
+
+                                        left.appendChild(title);
+                                        left.appendChild(date);
+
+                                        const right = document.createElement('div');
+                                        right.className = 'activity_amount';
+                                        let sign = '+';
+                                        if (item.type === 'withdraw' || item.type === 'buy') sign = '-';
+                                        const amountVal = parseFloat(item.amount) || 0;
+                                        right.textContent = sign + amountVal.toFixed(4) + ' ETH';
+
+                                        row.appendChild(left);
+                                        row.appendChild(right);
+                                        activityList.appendChild(row);
+                                    });
+                                })
+                                .catch(() => {
+                                    const p = document.createElement('p');
+                                    p.className = 'empty_msg';
+                                    p.textContent = 'Could not load activity.';
+                                    activityList.appendChild(p);
+                                });
+                        }
+
                         // Load NFTs for profile stats and tabs
                         fetch('nfts.php').then(r=>r.json()).then(nfts=>{
                             if (!Array.isArray(nfts)) return;
@@ -528,22 +648,135 @@
                             // grids
                             const collectedGrid = document.getElementById('collectedGrid');
                             const createdGrid = document.getElementById('createdGrid');
-                            const activityList = document.getElementById('activityList');
 
                             renderProfileNftGrid(collectedGrid, collected, 'No collected NFTs yet.');
                             renderProfileNftGrid(createdGrid, created, 'No created NFTs yet.');
 
-                            if (activityList) {
-                                activityList.innerHTML = '';
-                                const p = document.createElement('p');
-                                p.className = 'empty_msg';
-                                p.textContent = 'No activity yet.';
-                                activityList.appendChild(p);
-                            }
+                            loadActivityList();
 
                             const tabsContainer = document.getElementById('profileTabsContainer');
                             if (tabsContainer) tabsContainer.style.display = 'block';
                         }).catch(()=>{});
+
+                        // Deposit / Withdraw logic
+                        const depositBtn = document.getElementById('depositBtn');
+                        const withdrawBtn = document.getElementById('withdrawBtn');
+                        const balanceModal = document.getElementById('balanceModal');
+                        const balanceModalTitle = document.getElementById('balanceModalTitle');
+                        const balanceAmountInput = document.getElementById('balanceAmountInput');
+                        const balanceConfirmBtn = document.getElementById('balanceConfirmBtn');
+                        const balanceMaxBtn = document.getElementById('balanceMaxBtn');
+                        const balanceModalClose = balanceModal ? balanceModal.querySelector('.balance_modal_close') : null;
+                        const walletInput = document.getElementById('walletInput');
+
+                        function showBalanceStatus(msg, ok) {
+                            if (!balanceStatus) return;
+                            balanceStatus.style.display = 'block';
+                            balanceStatus.style.color = ok ? '#10b981' : '#ef4444';
+                            balanceStatus.textContent = msg;
+                            setTimeout(() => {
+                                balanceStatus.style.display = 'none';
+                            }, 4000);
+                        }
+
+                        function openBalanceModal(action) {
+                            if (!balanceModal || !balanceAmountInput || !balanceModalTitle) return;
+                            const hasWallet = data.wallet && String(data.wallet).trim().length > 0;
+                            const currentWalletVal = walletInput ? walletInput.value.trim() : '';
+                            if (!hasWallet && !currentWalletVal) {
+                                showBalanceStatus('Please save a wallet address before using balance.', false);
+                                if (walletInput) {
+                                    walletInput.focus();
+                                }
+                                return;
+                            }
+                            balanceModal.setAttribute('data-action', action);
+                            balanceModalTitle.textContent = (action === 'withdraw') ? 'Withdraw ETH' : 'Deposit ETH';
+                            balanceAmountInput.value = '';
+                            if (balanceMaxBtn) {
+                                balanceMaxBtn.style.display = (action === 'withdraw') ? 'inline-block' : 'none';
+                            }
+                            balanceModal.style.display = 'flex';
+                        }
+
+                        function closeBalanceModal() {
+                            if (!balanceModal) return;
+                            balanceModal.style.display = 'none';
+                        }
+
+                        if (depositBtn) {
+                            depositBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                openBalanceModal('deposit');
+                            });
+                        }
+
+                        if (withdrawBtn) {
+                            withdrawBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                openBalanceModal('withdraw');
+                            });
+                        }
+
+                        if (balanceModal && balanceModalClose) {
+                            balanceModalClose.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                closeBalanceModal();
+                            });
+                            balanceModal.addEventListener('click', (e) => {
+                                if (e.target === balanceModal) {
+                                    closeBalanceModal();
+                                }
+                            });
+                        }
+
+                        if (balanceConfirmBtn && balanceAmountInput && balanceModal) {
+                            balanceConfirmBtn.addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                let rawVal = balanceAmountInput.value.replace(',', '.');
+                                let amt = parseFloat(rawVal);
+                                if (!amt || amt <= 0) {
+                                    showBalanceStatus('Please enter a positive amount.', false);
+                                    return;
+                                }
+                                const action = balanceModal.getAttribute('data-action') || 'deposit';
+                                try {
+                                    const resp = await fetch('update_balance.php', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action, amount: amt })
+                                    });
+                                    const payload = await resp.json();
+                                    if (resp.ok && payload && payload.ok) {
+                                        currentBalance = typeof payload.balance_eth !== 'undefined'
+                                            ? parseFloat(payload.balance_eth)
+                                            : currentBalance;
+                                        if (isNaN(currentBalance)) currentBalance = 0;
+                                        updateBalanceUI();
+                                        showBalanceStatus(action === 'withdraw' ? 'Withdraw successful.' : 'Deposit successful.', true);
+                                        closeBalanceModal();
+                                        // refresh Activity tab live
+                                        loadActivityList();
+                                    } else {
+                                        const code = payload && payload.error ? payload.error : 'unknown_error';
+                                        let msg = 'Could not update balance.';
+                                        if (code === 'wallet_required') msg = 'Please save a wallet address before using balance.';
+                                        if (code === 'insufficient_funds') msg = 'Insufficient funds to withdraw that amount.';
+                                        showBalanceStatus(msg, false);
+                                    }
+                                } catch (err) {
+                                    console.error('update_balance error', err);
+                                    showBalanceStatus('Network error while updating balance.', false);
+                                }
+                            });
+                        }
+
+                        if (balanceMaxBtn && balanceAmountInput) {
+                            balanceMaxBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                balanceAmountInput.value = currentBalance.toFixed(4);
+                            });
+                        }
                     } else {
                         // Dacă NU e logat, îl trimitem forțat la Login
                         window.location.href = 'login.html';

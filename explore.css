@@ -140,3 +140,21 @@
     height: 50px; 
     cursor: pointer;
 }
+
+/* Responsive layout pentru Explore & Wishlist */
+@media (max-width: 900px) {
+    .search_explore {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #search_bar_explore {
+        width: 100%;
+    }
+    .filter_button {
+        width: 100%;
+        justify-content: center;
+    }
+    .filter_box {
+        grid-template-columns: 1fr;
+    }
+}
