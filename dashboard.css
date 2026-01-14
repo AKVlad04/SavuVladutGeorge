@@ -82,6 +82,12 @@
 .admin_table tbody td{ padding:12px; border-top:1px solid rgba(255,255,255,0.03); font-size:14px }
 .admin_table img{ max-width:48px; border-radius:6px }
 
+.admin_table .user_link{
+    color:#4ea1ff;
+    cursor:pointer;
+    text-decoration:underline;
+}
+
 .btn{ padding:8px 10px; border-radius:6px; border:none; cursor:pointer; margin-right:6px; font-size:13px }
 .btn-ban{ background:#ef4444; color:#fff }
 .btn-promote{ background:#f59e0b; color:#fff }
@@ -144,9 +150,32 @@
 
 .actions_cell{ min-width:220px }
 
+/* Verification sub-tabs */
+.verif_tabs {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 8px;
+}
+.verif_tab_btn {
+    background: #23272f;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.verif_tab_btn.active {
+    background: #111827;
+    border-color: #00d9ff;
+    color: #00d9ff;
+}
+
 /* Verification Requests Table Styles */
-/* Verification Requests Table Styles */
-#verificationsTable .approve_btn, #verificationsTable .reject_btn, #verificationsTable .confirm_btn {
+/* User + NFT Verification Tables */
+#verificationsTable .approve_btn, #verificationsTable .reject_btn, #verificationsTable .confirm_btn,
+#nftVerificationsTable .approve_btn, #nftVerificationsTable .reject_btn, #nftVerificationsTable .confirm_btn {
     background: linear-gradient(90deg, #10b981 0%, #4ea1ff 100%);
     color: #fff;
     border: none;
@@ -159,23 +188,30 @@
     transition: background 0.2s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(16,185,129,0.10);
 }
-#verificationsTable .approve_btn:hover {
+#verificationsTable .approve_btn:hover,
+#nftVerificationsTable .approve_btn:hover {
     background: linear-gradient(90deg, #10b981 0%, #3578c7 100%);
 }
-#verificationsTable .reject_btn {
+#verificationsTable .reject_btn,
+#nftVerificationsTable .reject_btn {
     background: linear-gradient(90deg, #ef4444 0%, #f59e0b 100%);
 }
-#verificationsTable .reject_btn:hover {
+#verificationsTable .reject_btn:hover,
+#nftVerificationsTable .reject_btn:hover {
     background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
 }
-#verificationsTable .confirm_btn {
+#verificationsTable .confirm_btn,
+#nftVerificationsTable .confirm_btn {
     background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
 }
-#verificationsTable .confirm_btn:hover {
+#verificationsTable .confirm_btn:hover,
+#nftVerificationsTable .confirm_btn:hover {
     background: linear-gradient(90deg, #10b981 0%, #6366f1 100%);
 }
 #verificationsTable .approve_btn.active, #verificationsTable .reject_btn.active,
-#verificationsTable .approve_btn.pressed, #verificationsTable .reject_btn.pressed {
+#verificationsTable .approve_btn.pressed, #verificationsTable .reject_btn.pressed,
+#nftVerificationsTable .approve_btn.active, #nftVerificationsTable .reject_btn.active,
+#nftVerificationsTable .approve_btn.pressed, #nftVerificationsTable .reject_btn.pressed {
     box-shadow: 0 0 0 3px #00d9ff99;
     outline: 2px solid #00d9ff;
     filter: brightness(1.18);
@@ -183,7 +219,8 @@
     color: #fff !important;
     border: 2px solid #00d9ff;
 }
-#verificationsTable td, #verificationsTable th {
+#verificationsTable td, #verificationsTable th,
+#nftVerificationsTable td, #nftVerificationsTable th {
     text-align: center;
     vertical-align: middle;
 }

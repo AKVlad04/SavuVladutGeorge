@@ -16,7 +16,8 @@
         <div class="buttons_footer">
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
-            <a href="create.html" class="create_button">Create</a>
+            <a href="wishlist.html" class="wishlist_button">Wishlist</a>
+            <a href="create.html" class="create_button">Mint</a>
             <a href="profile.html" class="profile_button">Profile</a>
             <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
         </div>
@@ -163,19 +164,47 @@
                 <!-- Verification Requests -->
                 <div id="panel-verifications" class="dashboard_panel" style="display:none">
                     <h2>Verification Requests</h2>
-                    <div id="verificationsTableWrap">
-                        <table class="admin_table" id="verificationsTable">
+
+                    <div class="verif_tabs">
+                        <button class="verif_tab_btn active" data-verif-mode="users">User Verifications</button>
+                        <button class="verif_tab_btn" data-verif-mode="nfts">NFT Verifications</button>
+                    </div>
+
+                    <!-- User verification requests (existing behavior) -->
+                    <div id="userVerificationsSection">
+                        <div id="verificationsTableWrap">
+                            <table class="admin_table" id="verificationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Description</th>
+                                        <th>Document</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- NFT verification requests (unapproved NFTs) -->
+                    <div id="nftVerificationsSection" style="display:none">
+                        <table class="admin_table" id="nftVerificationsTable">
                             <thead>
                                 <tr>
-                                    <th>User</th>
-                                    <th>Email</th>
-                                    <th>Description</th>
-                                    <th>Document</th>
+                                    <th>Thumbnail</th>
+                                    <th>Name</th>
+                                    <th>Creator</th>
+                                    <th>Price</th>
+                                    <th>Created At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Rows will be populated by JS -->
+                                <!-- Rows populated din JS -->
                             </tbody>
                         </table>
                     </div>

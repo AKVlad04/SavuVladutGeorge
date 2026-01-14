@@ -1,5 +1,7 @@
     if (!window.__verifSelectedAction) window.__verifSelectedAction = {};
     let selectedAction = window.__verifSelectedAction;
+    if (!window.__nftVerifSelectedAction) window.__nftVerifSelectedAction = {};
+    let nftSelectedAction = window.__nftVerifSelectedAction;
 // dashboard.js — renders dashboard panels and handles actions
 document.addEventListener('DOMContentLoaded', () => {
         // --- VERIFICATION REQUESTS ---
@@ -316,13 +318,44 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
                 <td><img src="${n.thumbnail}" style="width:48px;height:48px;object-fit:cover;border-radius:6px"></td>
                 <td>${n.name}</td>
-                <td><a href="profile.html">${n.creator}</a></td>
-                <td>${n.owner}</td>
+                <td><span class="user_link nft-creator-link" data-username="${n.creator || ''}">${n.creator || '-'}</span></td>
+                <td><span class="user_link nft-owner-link" data-username="${n.owner || ''}">${n.owner || '-'}</span></td>
                 <td>${n.price} ETH</td>
                 <td>${n.created_at}</td>
                 <td>${featuredCell}</td>
                 <td>${actionCell}</td>
             `;
+
+            // Clickable creator / owner names -> profile or public profile
+            const creatorLink = tr.querySelector('.nft-creator-link');
+            if (creatorLink && creatorLink.dataset.username) {
+                creatorLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const uname = creatorLink.dataset.username;
+                    if (!uname) return;
+                    if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                        window.location.href = 'profile.html';
+                    } else {
+                        window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                    }
+                });
+            }
+
+            const ownerLink = tr.querySelector('.nft-owner-link');
+            if (ownerLink && ownerLink.dataset.username) {
+                ownerLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const uname = ownerLink.dataset.username;
+                    if (!uname) return;
+                    if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                        window.location.href = 'profile.html';
+                    } else {
+                        window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                    }
+                });
+            }
             if (!n.is_deleted || parseInt(n.is_deleted) !== 1) {
                 const delBtn = tr.querySelector('.btn-del');
                 if (delBtn) {
@@ -512,6 +545,84 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 }
+
+    // NFT VERIFICATION REQUESTS (unapproved NFTs)
+    function fetchNftVerifications() {
+        fetch('admin_get_nft_verifications.php')
+            .then(r => r.json())
+            .then(data => renderNftVerifications(data))
+            .catch(() => renderNftVerifications([]));
+    }
+
+    function renderNftVerifications(items) {
+        const tbody = document.querySelector('#nftVerificationsTable tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (!Array.isArray(items) || items.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td colspan="6" style="text-align:center;color:#aaa">No NFTs pending approval</td>';
+            tbody.appendChild(tr);
+            return;
+        }
+
+        items.forEach(nft => {
+            const tr = document.createElement('tr');
+            tr.dataset.rowId = nft.id;
+            tr.dataset.nftId = nft.id;
+            const approveActive = nftSelectedAction[nft.id] === 'approve';
+            const rejectActive = nftSelectedAction[nft.id] === 'reject';
+            const thumb = nft.thumbnail || nft.image_url || 'img/placeholder.jpg';
+            const creator = nft.creator || nft.creator_name || ('User #' + (nft.creator_id || '?'));
+            const price = nft.price !== undefined ? nft.price : '-';
+            const createdAt = nft.created_at || '';
+            tr.innerHTML = `
+                <td><img src="${thumb}" style="width:48px;height:48px;object-fit:cover;border-radius:6px" /></td>
+                <td>${nft.name || '-'}</td>
+                <td>${creator}</td>
+                <td>${price} ETH</td>
+                <td>${createdAt}</td>
+                <td class="verif_actions_cell">
+                    <button class="approve_btn${approveActive ? ' active pressed' : ''}" data-id="${nft.id}">Approve</button>
+                    <button class="reject_btn${rejectActive ? ' active pressed' : ''}" data-id="${nft.id}">Reject</button>
+                    <button class="confirm_btn" data-id="${nft.id}">Confirm</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // approve/reject just select the action (highlight)
+        tbody.querySelectorAll('.approve_btn').forEach(btn => {
+            btn.onclick = function() {
+                const id = this.dataset.id;
+                Object.keys(nftSelectedAction).forEach(k => delete nftSelectedAction[k]);
+                nftSelectedAction[id] = 'approve';
+                renderNftVerifications(items.map(i => Object.assign({}, i)));
+            };
+        });
+        tbody.querySelectorAll('.reject_btn').forEach(btn => {
+            btn.onclick = function() {
+                const id = this.dataset.id;
+                Object.keys(nftSelectedAction).forEach(k => delete nftSelectedAction[k]);
+                nftSelectedAction[id] = 'reject';
+                renderNftVerifications(items.map(i => Object.assign({}, i)));
+            };
+        });
+        // Confirm sends the action
+        tbody.querySelectorAll('.confirm_btn').forEach(btn => {
+            btn.onclick = async function() {
+                const id = this.dataset.id;
+                const action = nftSelectedAction[id];
+                if (!action) return;
+                if (action === 'approve') {
+                    await adminAction('nft_approve', id, true);
+                } else if (action === 'reject') {
+                    await adminAction('nft_reject', id, true);
+                }
+                Object.keys(nftSelectedAction).forEach(k => delete nftSelectedAction[k]);
+                setTimeout(() => fetchNftVerifications(), 300);
+            };
+        });
+    }
     // Image popup logic
     function showImgPopup(imgUrl) {
         const overlay = document.getElementById('imgPopupOverlay');
@@ -548,6 +659,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'verification_reject':
                     fetchUsers();
                     fetchVerifications && fetchVerifications();
+                    break;
+                case 'nft_approve':
+                case 'nft_reject':
+                    fetchNftVerifications && fetchNftVerifications();
                     break;
                 case 'delete_nft':
                     fetchNFTs();
@@ -598,17 +713,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Încarcă cererile de verificare la inițializare și la click pe tab
     const verifTab = document.querySelector('li[data-panel="verifications"]');
+    const verifModeButtons = document.querySelectorAll('.verif_tab_btn');
+    function setVerificationMode(mode) {
+        const userSec = document.getElementById('userVerificationsSection');
+        const nftSec = document.getElementById('nftVerificationsSection');
+        verifModeButtons.forEach(btn => {
+            if (btn.dataset.verifMode === mode) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        if (userSec && nftSec) {
+            userSec.style.display = (mode === 'users') ? '' : 'none';
+            nftSec.style.display = (mode === 'nfts') ? '' : 'none';
+        }
+        if (mode === 'users') fetchVerifications();
+        if (mode === 'nfts') fetchNftVerifications();
+    }
+
+    if (verifModeButtons.length) {
+        verifModeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.verifMode || 'users';
+                setVerificationMode(mode);
+            });
+        });
+    }
+
     if (verifTab) {
         verifTab.addEventListener('click', function() {
-            fetchVerifications();
+            setVerificationMode('users');
         });
         // Încarcă automat dacă tab-ul e activ la load
         if (verifTab.classList.contains('active')) {
-            fetchVerifications();
+            setVerificationMode('users');
         }
-    } else {
-        // Dacă nu există tab, încarcă oricum la inițializare
-        fetchVerifications();
     }
 
     // Expose for debugging

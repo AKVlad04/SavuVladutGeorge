@@ -142,6 +142,27 @@ try {
         exit();
     }
 
+    // NFT APPROVAL (is_approved = 1)
+    if ($action === 'nft_approve') {
+        $col = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_approved'")->rowCount();
+        if ($col === 0) $pdo->exec("ALTER TABLE nfts ADD COLUMN is_approved TINYINT(1) DEFAULT 0 AFTER is_deleted");
+        $pdo->prepare("UPDATE nfts SET is_approved = 1 WHERE id = ?")->execute([$id]);
+        echo json_encode(['ok' => true, 'action' => 'nft_approve']);
+        exit();
+    }
+
+    // NFT REJECTION (keeps is_approved = 0, hides NFT by soft delete)
+    if ($action === 'nft_reject') {
+        $col = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_approved'")->rowCount();
+        if ($col === 0) $pdo->exec("ALTER TABLE nfts ADD COLUMN is_approved TINYINT(1) DEFAULT 0 AFTER is_deleted");
+        // also mark NFT as deleted so it doesn't appear in lists
+        $delCol = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_deleted'")->rowCount();
+        if ($delCol === 0) $pdo->exec("ALTER TABLE nfts ADD COLUMN is_deleted TINYINT(1) DEFAULT 0");
+        $pdo->prepare("UPDATE nfts SET is_deleted = 1 WHERE id = ?")->execute([$id]);
+        echo json_encode(['ok' => true, 'action' => 'nft_reject']);
+        exit();
+    }
+
     // DISMISS REPORT
     if ($action === 'dismiss_report') {
         $pdo->prepare("DELETE FROM reports WHERE id = ?")->execute([$id]);

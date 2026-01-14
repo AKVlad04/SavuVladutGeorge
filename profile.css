@@ -195,7 +195,8 @@ label[for="walletInput"] {
 /* Owned NFTs grid */
 .owned_section{ margin-top: 24px; }
 .owned_grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
-.owned_item{ background: #0f1114; border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center }
+.owned_item{ background: #0f1114; border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; cursor:pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+.owned_item:hover{ transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0,0,0,0.45); border-color: rgba(0,217,255,0.45); }
 .owned_img img{ width:120px; height:120px; object-fit:cover; border-radius:8px }
 .owned_meta{ color:#fff; width:100% }
 .owned_name{ font-size:13px; margin:6px 0 4px }

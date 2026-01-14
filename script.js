@@ -1,3 +1,13 @@
+let currentUsername = null;
+// preluam username-ul curent (daca este logat) pentru a stii cand sa trimitem spre profile.html
+fetch('check_auth.php')
+    .then(r => r.json())
+    .then(d => {
+        if (d && d.logged_in && d.username) {
+            currentUsername = d.username;
+        }
+    })
+    .catch(() => {});
 
     
 // --- LOGICA PENTRU NFT-URI ȘI INTERFAȚĂ ---
@@ -34,30 +44,54 @@ if (container) {
 
     let currentNFTs = [];
     let nftsFromDB = [];
+    const pageType = document.body ? document.body.getAttribute('data-page') : null;
     let ethRateCache = null;
     let ethRateCacheTime = 0;
     const searchInputMain = document.getElementById('search_bar');
     const searchInputExplore = document.getElementById('search_bar_explore');
 
-    // Load NFTs from server, fallback to mock data
-    fetch('nfts.php').then(r => r.json()).then(data => {
+    // Load NFTs from server; for wishlist page use wishlist_list.php
+    const fetchUrl = (pageType === 'wishlist') ? 'wishlist_list.php' : 'nfts.php';
+
+    fetch(fetchUrl).then(async r => {
+        if (pageType === 'wishlist' && r.status === 401) {
+            // Not logged in -> send to login
+            window.location.href = 'login.html';
+            return [];
+        }
+        return r.json();
+    }).then(data => {
+        if (!data) return;
         if (Array.isArray(data) && data.length > 0) nftsFromDB = data;
         else nftsFromDB = [];
-        // On main page show only featured; on explore show all
+
         const isIndex = !!document.getElementById('search_bar');
-        if (isIndex) {
+
+        if (pageType === 'wishlist') {
+            // On wishlist we always show all wishlist NFTs
+            currentNFTs = nftsFromDB.slice();
+        } else if (isIndex) {
+            // On main page show only featured; on explore show all
             currentNFTs = nftsFromDB.filter(n => parseInt(n.is_featured) === 1);
         } else {
             currentNFTs = nftsFromDB.slice();
         }
+
         populateCategories();
         renderNFTs(currentNFTs);
     }).catch(err => {
-        console.warn('Could not load nfts.php', err);
+        console.warn('Could not load', fetchUrl, err);
         nftsFromDB = [];
         const isIndex = !!document.getElementById('search_bar');
-        if (isIndex) currentNFTs = nftsFromDB.filter(n => n.is_featured && parseInt(n.is_featured) === 1);
-        else currentNFTs = nftsFromDB.slice();
+
+        if (pageType === 'wishlist') {
+            currentNFTs = [];
+        } else if (isIndex) {
+            currentNFTs = nftsFromDB.filter(n => n.is_featured && parseInt(n.is_featured) === 1);
+        } else {
+            currentNFTs = nftsFromDB.slice();
+        }
+
         populateCategories();
         renderNFTs(currentNFTs);
     });
@@ -92,6 +126,11 @@ if (container) {
             div.innerHTML = `
             <div class="nft_image">
                 <img src="${nft.image_url}" alt="${nft.name}">
+                <button class="card-wishlist-btn" type="button" data-nft-id="${nft.id}" aria-pressed="false" title="Add to wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                    </svg>
+                </button>
             </div>
             <div class="nft_footer">
                 <div class="nft_name_cat">
@@ -102,14 +141,104 @@ if (container) {
             </div>
             `;
             
+            const cardWishlistBtn = div.querySelector('.card-wishlist-btn');
+            if (cardWishlistBtn && nft.id) {
+                // Initial state from server
+                fetch('wishlist_status.php?nft_id=' + encodeURIComponent(nft.id))
+                    .then(r => r.json())
+                    .then(st => {
+                        if (st && st.in_wishlist) {
+                            cardWishlistBtn.classList.add('active');
+                            cardWishlistBtn.setAttribute('aria-pressed', 'true');
+                        } else {
+                            cardWishlistBtn.classList.remove('active');
+                            cardWishlistBtn.setAttribute('aria-pressed', 'false');
+                        }
+                    })
+                    .catch(() => {});
+
+                cardWishlistBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try {
+                        const resp = await fetch('wishlist_toggle.php', {
+                            method: 'POST',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({nft_id: nft.id})
+                        });
+                        const data = await resp.json();
+                        if (data && data.error === 'not_logged_in') {
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        if (data && data.ok) {
+                            const inW = !!data.in_wishlist;
+                            if (inW) {
+                                cardWishlistBtn.classList.add('active');
+                                cardWishlistBtn.setAttribute('aria-pressed', 'true');
+                                // Sync popup button if open for this NFT
+                                if (popup && popup.classList.contains('show') && wishlistBtn && popupTitle && popupTitle.textContent === nft.name) {
+                                    wishlistBtn.classList.add('active');
+                                    wishlistBtn.setAttribute('aria-pressed', 'true');
+                                }
+                            } else {
+                                cardWishlistBtn.classList.remove('active');
+                                cardWishlistBtn.setAttribute('aria-pressed', 'false');
+                                if (popup && popup.classList.contains('show') && wishlistBtn && popupTitle && popupTitle.textContent === nft.name) {
+                                    wishlistBtn.classList.remove('active');
+                                    wishlistBtn.setAttribute('aria-pressed', 'false');
+                                }
+                                if (pageType === 'wishlist') {
+                                    nftsFromDB = nftsFromDB.filter(x => x.id !== nft.id);
+                                    currentNFTs = currentNFTs.filter(x => x.id !== nft.id);
+                                    renderNFTs(currentNFTs);
+                                }
+                            }
+                        }
+                    } catch (e2) {
+                        console.error('card wishlist toggle failed', e2);
+                    }
+                });
+            }
+
             div.addEventListener('click', async () => {
                 popupTitle.textContent = nft.name;
                 popupCategory.textContent = nft.category;
                 popupDescription.textContent = nft.description;
                 popupPrice.textContent = nft.price + " ETH";
                 popupImg.src = nft.image_url;
-                if (popupOwner) popupOwner.textContent = nft.owner_name || (nft.owner_id ? ('User #' + nft.owner_id) : '—');
-                if (popupCreator) popupCreator.textContent = nft.creator_name || (nft.creator_id ? ('User #' + nft.creator_id) : '—');
+
+                const ownerNameRaw = nft.owner_name || (nft.owner_id ? ('User #' + nft.owner_id) : '');
+                const creatorNameRaw = nft.creator_name || (nft.creator_id ? ('User #' + nft.creator_id) : '');
+
+                if (popupOwner) {
+                    popupOwner.textContent = ownerNameRaw || '—';
+                    popupOwner.style.cursor = ownerNameRaw ? 'pointer' : 'default';
+                    popupOwner.onclick = null;
+                    if (ownerNameRaw && !ownerNameRaw.startsWith('User #')) {
+                        popupOwner.onclick = () => {
+                            if (currentUsername && currentUsername.toLowerCase() === ownerNameRaw.toLowerCase()) {
+                                window.location.href = 'profile.html';
+                            } else {
+                                window.location.href = 'profile_public.html?user=' + encodeURIComponent(ownerNameRaw);
+                            }
+                        };
+                    }
+                }
+
+                if (popupCreator) {
+                    popupCreator.textContent = creatorNameRaw || '—';
+                    popupCreator.style.cursor = creatorNameRaw ? 'pointer' : 'default';
+                    popupCreator.onclick = null;
+                    if (creatorNameRaw && !creatorNameRaw.startsWith('User #')) {
+                        popupCreator.onclick = () => {
+                            if (currentUsername && currentUsername.toLowerCase() === creatorNameRaw.toLowerCase()) {
+                                window.location.href = 'profile.html';
+                            } else {
+                                window.location.href = 'profile_public.html?user=' + encodeURIComponent(creatorNameRaw);
+                            }
+                        };
+                    }
+                }
                 popup.classList.add('show');
                 // Update approximate USD price in the popup. Query the element inside the popup
                 const aproxElLocal = popup ? popup.querySelector('#aprox') : null;
@@ -184,9 +313,19 @@ if (container) {
                             if (st && st.in_wishlist) {
                                 wishlistBtn.classList.add('active');
                                 wishlistBtn.setAttribute('aria-pressed', 'true');
+                                const cardBtn = document.querySelector('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                if (cardBtn) {
+                                    cardBtn.classList.add('active');
+                                    cardBtn.setAttribute('aria-pressed', 'true');
+                                }
                             } else {
                                 wishlistBtn.classList.remove('active');
                                 wishlistBtn.setAttribute('aria-pressed', 'false');
+                                const cardBtn = document.querySelector('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                if (cardBtn) {
+                                    cardBtn.classList.remove('active');
+                                    cardBtn.setAttribute('aria-pressed', 'false');
+                                }
                             }
                         }).catch(()=>{});
 
@@ -207,9 +346,27 @@ if (container) {
                                 if (inW) {
                                     wishlistBtn.classList.add('active');
                                     wishlistBtn.setAttribute('aria-pressed', 'true');
+                                    const cardBtn = document.querySelector('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                    if (cardBtn) {
+                                        cardBtn.classList.add('active');
+                                        cardBtn.setAttribute('aria-pressed', 'true');
+                                    }
                                 } else {
                                     wishlistBtn.classList.remove('active');
                                     wishlistBtn.setAttribute('aria-pressed', 'false');
+                                    // On wishlist page, remove NFT instantly from the list
+                                    if (pageType === 'wishlist') {
+                                        nftsFromDB = nftsFromDB.filter(x => x.id !== nft.id);
+                                        currentNFTs = currentNFTs.filter(x => x.id !== nft.id);
+                                        renderNFTs(currentNFTs);
+                                        if (popup) popup.classList.remove('show');
+                                    } else {
+                                        const cardBtn = document.querySelector('.card-wishlist-btn[data-nft-id="' + nft.id + '"]');
+                                        if (cardBtn) {
+                                            cardBtn.classList.remove('active');
+                                            cardBtn.setAttribute('aria-pressed', 'false');
+                                        }
+                                    }
                                 }
                             }
                         } catch(e) {
@@ -337,13 +494,14 @@ if (container) {
 // --- LOGICA DE AUTHENTICARE (Login <-> Logout Transform) ---
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Hide auth and create buttons until auth check completes
-    document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+    // Hide auth, create and wishlist buttons until auth check completes
+    document.querySelectorAll('.connect_wallet, .create_button, .wishlist_button, .small_button_footer[href="create.html"]').forEach(el => {
         el.style.visibility = 'hidden';
     });
     const loginBtnLink = document.querySelector('.connect_wallet'); 
     const loginBtnText = document.querySelector('.connect_wallet_text');
     const profileMenuBtn = document.querySelector('.profile_button'); 
+    const wishlistBtns = document.querySelectorAll('.wishlist_button');
 
     fetch('get_profile.php')
         .then(response => {
@@ -373,6 +531,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     profileMenuBtn.style.display = 'inline-block';
                 }
 
+                // 3. Afișăm Wishlist doar pentru utilizatori logați
+                wishlistBtns.forEach(el => { el.style.display = 'inline-block'; });
+
             } else {
                 // === UTILIZATOR NECONECTAT ===
                 
@@ -392,6 +553,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (profileMenuBtn) {
                     profileMenuBtn.style.display = 'none';
                 }
+
+                // 3. Ascundem Wishlist pentru utilizatori nelogați
+                wishlistBtns.forEach(el => { el.style.display = 'none'; });
             }
 
             // Ascunde tab-ul de Create dacă userul nu e verificat
@@ -401,8 +565,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // Show auth and create buttons after auth check
-            document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+            // Show auth, create and wishlist buttons after auth check (visibilitate, nu neapărat display)
+            document.querySelectorAll('.connect_wallet, .create_button, .wishlist_button, .small_button_footer[href="create.html"]').forEach(el => {
                 el.style.visibility = 'visible';
             });
         })
@@ -410,7 +574,8 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error('Eroare JS Auth:', error);
             // Fallback la Guest Mode
             if (profileMenuBtn) profileMenuBtn.style.display = 'none';
-            document.querySelectorAll('.connect_wallet, .create_button, .small_button_footer[href="create.html"]').forEach(el => {
+            wishlistBtns.forEach(el => { el.style.display = 'none'; });
+            document.querySelectorAll('.connect_wallet, .create_button, .wishlist_button, .small_button_footer[href="create.html"]').forEach(el => {
                 el.style.visibility = 'visible';
             });
         });

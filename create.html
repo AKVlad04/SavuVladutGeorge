@@ -20,7 +20,8 @@
     <div class = "buttons_footer">
         <a href="index.html" class="home_button">Home</a>
         <a href="explore.html" class="explore_button">Explore</a>
-        <a href="create.html" class="create_button">Create</a>
+        <a href="wishlist.html" class="wishlist_button">Wishlist</a>
+        <a href="create.html" class="create_button">Mint</a>
         <a href="profile.html" class="profile_button">Profile</a>
         <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
     </div>
@@ -51,7 +52,7 @@
     </script>
 
     <div class="create_page">
-        <h1 class="create_new">Create New NFT</h1>
+        <h1 class="create_new">Mint New NFT</h1>
         <span class="upload_text">Upload your work and set up your digital collectible</span>
 
     <div class="upload_container">
@@ -84,8 +85,8 @@
                 </select>
             
     </div>
-            <button type="submit" id="createNftBtn" class="create_nft_button">Create NFT</button>
-            <div id="createMsg" style="margin-top:16px;color:#fff;"></div>
+            <button type="submit" id="createNftBtn" class="create_nft_button">Mint NFT</button>
+            <div id="createMsg"></div>
 </div>
 
 <script src="script.js"></script>
@@ -101,12 +102,12 @@
             const verified = (d && typeof d.is_verified !== 'undefined') ? Boolean(Number(d.is_verified)) : false;
             if (!verified) {
                 btn.disabled = true;
-                btn.title = 'You must be a verified creator to create NFTs';
+                btn.title = 'You must be a verified creator to mint NFTs';
                 btn.classList.add('btn-disabled');
             }
         }).catch(()=>{
             btn.disabled = true;
-            btn.title = 'Sign in as a verified creator to create NFTs';
+            btn.title = 'Sign in as a verified creator to mint NFTs';
             btn.classList.add('btn-disabled');
         });
 })();
@@ -118,33 +119,48 @@ fetch('get_categories.php').then(r=>r.json()).then(cats=>{
     sel.innerHTML = '<option value="">Select category</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 });
 
-// File preview
+// File preview + nicer layout on selection
 document.getElementById('nftFile').addEventListener('change', function(e){
     const file = this.files[0];
     const prev = document.getElementById('filePreview');
+    const box = document.getElementById('uploadBox');
+    const dragText = document.querySelector('.drag_text');
+    const fileTypes = document.querySelector('.file_types');
+    const icon = document.querySelector('.icon-upload');
     prev.innerHTML = '';
-    if (!file) return;
+    if (!file) {
+        if (box) box.classList.remove('has-file');
+        if (dragText) dragText.style.display = '';
+        if (fileTypes) fileTypes.style.display = '';
+        if (icon) icon.style.display = '';
+        return;
+    }
+    if (box) box.classList.add('has-file');
+    if (dragText) dragText.style.display = 'none';
+    if (fileTypes) fileTypes.style.display = 'none';
+    if (icon) icon.style.display = 'none';
     if (file.type.startsWith('image/')) {
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
-        img.style.maxWidth = '120px';
-        img.style.maxHeight = '120px';
+        img.style.maxWidth = '160px';
+        img.style.maxHeight = '160px';
         prev.appendChild(img);
     } else if (file.type === 'video/mp4') {
         const vid = document.createElement('video');
         vid.src = URL.createObjectURL(file);
         vid.controls = true;
-        vid.style.maxWidth = '120px';
-        vid.style.maxHeight = '120px';
+        vid.style.maxWidth = '200px';
+        vid.style.maxHeight = '160px';
         prev.appendChild(vid);
     }
 });
 
-// Handle create NFT
+// Handle mint NFT
 document.getElementById('createNftBtn').addEventListener('click', function(e){
     e.preventDefault();
     const msg = document.getElementById('createMsg');
     msg.textContent = '';
+    msg.style.display = 'none';
     const file = document.getElementById('nftFile').files[0];
     const title = document.getElementById('nftTitle').value.trim();
     const desc = document.getElementById('nftDescription').value.trim();
@@ -167,7 +183,7 @@ document.getElementById('createNftBtn').addEventListener('click', function(e){
         body: fd
     }).then(r=>r.json()).then(d=>{
         if (d.ok) {
-            msg.textContent = 'NFT created successfully!';
+            msg.textContent = 'NFT submitted for verification.';
             document.getElementById('nftTitle').value = '';
             document.getElementById('nftDescription').value = '';
             document.getElementById('nftPrice').value = '';
@@ -175,11 +191,13 @@ document.getElementById('createNftBtn').addEventListener('click', function(e){
             document.getElementById('nftFile').value = '';
             document.getElementById('filePreview').innerHTML = '';
         } else {
-            msg.textContent = d.error || 'Error creating NFT.';
+            msg.textContent = d.error || 'Error minting NFT.';
         }
+        msg.style.display = 'block';
         this.disabled = false;
     }).catch(()=>{
-        msg.textContent = 'Error creating NFT.';
+        msg.textContent = 'Error minting NFT.';
+        msg.style.display = 'block';
         this.disabled = false;
     });
 });
@@ -208,7 +226,7 @@ document.getElementById('createNftBtn').addEventListener('click', function(e){
     
         <span class="footer_text_big">Marketplace</span>
         <a href="explore.html" class="small_button_footer">Explore</a>
-        <a href="create.html" class="small_button_footer">Create</a>
+        <a href="create.html" class="small_button_footer">Mint</a>
         <a href="collections.html" class="small_button_footer">Collections</a>
 
     </div>

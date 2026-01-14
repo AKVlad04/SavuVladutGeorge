@@ -67,14 +67,14 @@ body {
     box-shadow: 0 0 15px rgba(0, 217, 255, 0.7), 0 0 30px rgba(139, 92, 246, 0.7);
 }
 
-.home_button, .explore_button, .create_button, .profile_button {
+.home_button, .explore_button, .create_button, .profile_button, .wishlist_button {
     text-decoration: none;
     padding: 10px 25px;
     color: #e5e7eb;
     font-size: 18px;
 }
 
-.home_button:hover, .explore_button:hover, .create_button:hover, .profile_button:hover {
+.home_button:hover, .explore_button:hover, .create_button:hover, .profile_button:hover, .wishlist_button:hover {
     color: #35d8f6;
 }
 
@@ -172,10 +172,52 @@ body {
     margin-bottom: 5px;
 }
 
+.nft_image {
+    position: relative;
+}
+
 .nft_image img {
     width: 100%;
     object-fit: cover;
     display: block;
+}
+
+.card-wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 0.6px #4b5563;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.card-wishlist-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #9ca3af;
+}
+
+.card-wishlist-btn:hover {
+    box-shadow: 0 0 10px rgba(75, 85, 99, 0.6);
+    transform: translateY(-1px);
+}
+
+.card-wishlist-btn.active {
+    background: rgba(220, 38, 38, 0.12);
+    box-shadow: 0 0 0 0.6px #ef4444;
+}
+
+.card-wishlist-btn.active svg {
+    color: #f87171;
 }
 
 /* -------------------------------------- */
@@ -378,6 +420,11 @@ body {
     content: "@";
     opacity: 0.5;
     margin-right: 4px;
+}
+
+.owner_box .value:hover,
+.creator_box .value:hover {
+    color: #35d8f6;
 }
 
 /* Image column + actions (Send Request + Wishlist) */

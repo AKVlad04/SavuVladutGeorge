@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS nfts (
   image_url VARCHAR(255) DEFAULT NULL,
   is_featured TINYINT(1) DEFAULT 0,
   is_deleted TINYINT(1) DEFAULT 0,
+  is_approved TINYINT(1) DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   INDEX (creator_id),

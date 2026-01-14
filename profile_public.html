@@ -2,20 +2,31 @@
 <html>
 <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="profile.css">
     <title>Public Profile - Nexus</title>
 </head>
 <body>
     <header class="top_bar">
+
         <a href="index.html" class="logo">
             <span class="nexus_logo">N</span>
             <span class="nexus">Nexus</span>
         </a>
+
         <div class="buttons_footer">
             <a href="index.html" class="home_button">Home</a>
             <a href="explore.html" class="explore_button">Explore</a>
-            <a href="create.html" class="create_button">Create</a>
+            <a href="wishlist.html" class="wishlist_button">Wishlist</a>
+            <a href="create.html" class="create_button">Mint</a>
+            <a href="profile.html" class="profile_button">Profile</a>
+            <a href="dashboard.html" id="ownerDashboardLink" class="profile_button" style="visibility:hidden">Dashboard</a>
         </div>
+
+        <a href="login.html" class="connect_wallet">
+            <span class="connect_wallet_text">Login</span>
+        </a>
+
     </header>
     <div class="profile_page">
         <div class="profile_card" id="profileCard" style="opacity: 0; transition: opacity 0.5s;">
@@ -48,6 +59,47 @@
             <div id="ownedNfts" class="owned_grid"></div>
         </div>
     </div>
+    <!-- Simple NFT popup for public profile -->
+    <div id="nftPopup" class="popup">
+      <div class="popup-content">
+        <span class="close">&times;</span>
+
+        <div class="popup_nftdetails">
+            <span class="popup_nfttext">NFT Details</span>
+        </div>
+
+        <div class="pop_mare">
+            <div class="popup_image_wrapper">
+                <img id="popupImage" src="" alt="NFT preview">
+            </div>
+            <div class="pop_detalii">
+                <p id="popupCategory"></p>
+                <h2 id="popupTitle"></h2>
+
+                <p id="popupDescription"></p>
+
+                <div class="currentPrice">
+                    <span id="current_price">Current Price</span>
+                    <p id="popupPrice"></p>
+                    <span id="aprox">≈ $0.00 USD</span>
+                </div>
+
+                <div class="owner_creator_boxes">
+                    <div class="owner_box">
+                        <span class="label">Owner</span>
+                        <span id="popupOwner" class="value">-</span>
+                    </div>
+                    <div class="creator_box">
+                        <span class="label">Creator</span>
+                        <span id="popupCreator" class="value">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+    <script src="owner.js"></script>
     <script>
     function getQueryParam(name) {
         const url = new URL(window.location.href);
@@ -93,6 +145,7 @@
                         const d = document.createElement('div');
                         d.className = 'owned_item';
                         d.innerHTML = `<div class="owned_img"><img src="${n.image_url||'img/placeholder.jpg'}" alt="${n.name}"></div><div class="owned_meta"><div class="owned_name">${n.name}</div><div class="owned_price">${n.price} ETH</div></div>`;
+                        d.addEventListener('click', () => openOwnedNftPopup(n, data.username));
                         ownedGrid.appendChild(d);
                     });
                 } else {
@@ -102,6 +155,66 @@
             .catch(() => {
                 document.getElementById('userName').textContent = 'User not found';
             });
+    });
+
+    // helper to open NFT popup from public owned list
+    function openOwnedNftPopup(nft, username) {
+        const popup = document.getElementById('nftPopup');
+        if (!popup) return;
+        const popupTitle = document.getElementById('popupTitle');
+        const popupCategory = document.getElementById('popupCategory');
+        const popupDescription = document.getElementById('popupDescription');
+        const popupPrice = document.getElementById('popupPrice');
+        const popupImg = document.getElementById('popupImage');
+        const popupOwner = document.getElementById('popupOwner');
+        const popupCreator = document.getElementById('popupCreator');
+        const aproxEl = document.getElementById('aprox');
+
+        popupTitle.textContent = nft.name || '';
+        popupCategory.textContent = nft.category || '';
+        popupDescription.textContent = nft.description || '';
+        popupPrice.textContent = (nft.price || 0) + ' ETH';
+        popupImg.src = nft.image_url || 'img/placeholder.jpg';
+
+        const ownerNameRaw = username || '';
+        const creatorNameRaw = nft.creator_name || ownerNameRaw || '';
+
+        if (popupOwner) {
+            popupOwner.textContent = ownerNameRaw || '—';
+            popupOwner.style.cursor = 'default';
+            popupOwner.onclick = null;
+        }
+
+        if (popupCreator) {
+            popupCreator.textContent = creatorNameRaw || '—';
+            popupCreator.style.cursor = 'default';
+            popupCreator.onclick = null;
+        }
+
+        const ethVal = parseFloat(nft.price) || 0;
+        const rate = 1900;
+        if (aproxEl) {
+            aproxEl.textContent = '≈ $' + (ethVal * rate).toFixed(2) + ' USD';
+        }
+
+        popup.classList.add('show');
+    }
+
+    // Popup close logic for public profile
+    document.addEventListener('DOMContentLoaded', () => {
+        const popup = document.getElementById('nftPopup');
+        if (!popup) return;
+        const closeBtn = popup.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                popup.classList.remove('show');
+            });
+        }
+        window.addEventListener('click', (e) => {
+            if (e.target === popup) {
+                popup.classList.remove('show');
+            }
+        });
     });
     </script>
 </body>

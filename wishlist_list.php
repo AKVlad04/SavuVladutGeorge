@@ -1,30 +1,49 @@
 <?php
 require 'db.php';
+session_start();
 header('Content-Type: application/json');
 
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'not_logged_in']);
+    exit();
+}
+
+$userId = (int)$_SESSION['user_id'];
+
 try {
-    // Check table exists
-    $tbl = $pdo->query("SHOW TABLES LIKE 'nfts'")->rowCount();
-    if ($tbl === 0) {
-        // no table -> return empty array to allow frontend fallback
+    // Ensure required tables exist
+    $tblNfts = $pdo->query("SHOW TABLES LIKE 'nfts'")->rowCount();
+    if ($tblNfts === 0) {
         echo json_encode([]);
         exit();
     }
 
-    // Only show non-deleted NFTs, and only approved ones if column exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS wishlist (
+        user_id INT NOT NULL,
+        nft_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, nft_id)
+    )");
+
     $where = "n.is_deleted = 0";
     $hasApproved = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_approved'")->rowCount() > 0;
     if ($hasApproved) {
         $where .= " AND n.is_approved = 1";
     }
+
     $sql = "SELECT n.id, n.creator_id, n.owner_id, n.name, n.description, n.price, n.category, n.image_url, n.created_at, n.is_featured, ";
     $sql .= "COALESCE(uc.username, n.creator_id) AS creator_name, COALESCE(uo.username, n.owner_id) AS owner_name ";
-    $sql .= "FROM nfts n LEFT JOIN users uc ON uc.id = n.creator_id LEFT JOIN users uo ON uo.id = n.owner_id WHERE $where ORDER BY n.created_at DESC LIMIT 100";
+    $sql .= "FROM wishlist w ";
+    $sql .= "JOIN nfts n ON n.id = w.nft_id ";
+    $sql .= "LEFT JOIN users uc ON uc.id = n.creator_id ";
+    $sql .= "LEFT JOIN users uo ON uo.id = n.owner_id ";
+    $sql .= "WHERE w.user_id = :uid AND $where ORDER BY w.created_at DESC";
+
     $stmt = $pdo->prepare($sql);
-    $stmt->execute();
+    $stmt->execute([':uid' => $userId]);
     $rows = $stmt->fetchAll();
 
-    // Normalize keys for client
     $out = array_map(function($r){
         return [
             'id' => (int)$r['id'],
@@ -36,7 +55,7 @@ try {
             'category' => $r['category'],
             'image_url' => $r['image_url'] ?: 'img/placeholder.jpg',
             'created_at' => $r['created_at'],
-            'is_featured' => (int)$r['is_featured'],
+            'is_featured' => isset($r['is_featured']) ? (int)$r['is_featured'] : 0,
             'creator_name' => isset($r['creator_name']) ? $r['creator_name'] : null,
             'owner_name' => isset($r['owner_name']) ? $r['owner_name'] : null
         ];
