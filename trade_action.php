@@ -186,9 +186,9 @@ try {
         $updS = $pdo->prepare("UPDATE users SET balance_eth = ? WHERE id = ?");
         $updS->execute([$newSellerBalance, $sellerId]);
 
-        // Transfer NFT ownership
-        $updN = $pdo->prepare("UPDATE nfts SET owner_id = ?, price = ? WHERE id = ?");
-        $updN->execute([$buyerId, $price, $nftId]);
+        // Transfer NFT ownership (do not overwrite base price)
+        $updN = $pdo->prepare("UPDATE nfts SET owner_id = ? WHERE id = ?");
+        $updN->execute([$buyerId, $nftId]);
 
         // Mark trade as accepted
         $updT = $pdo->prepare("UPDATE trades SET status = 'accepted', buyer_id = ?, accepted_at = NOW() WHERE id = ? AND status = 'open'");

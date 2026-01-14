@@ -28,6 +28,76 @@
     color: rgb(156, 163, 175);
 }
 
+.trade_filters {
+    width: 100%;
+    max-width: 1200px;
+    margin: 10px auto 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    background-color: rgba(15, 23, 42, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+.trade_filter_group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 180px;
+}
+
+.trade_filter_group label {
+    font-size: 13px;
+    color: rgb(148, 163, 184);
+}
+
+.trade_filter_row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.trade_filter_sep {
+    color: rgb(148, 163, 184);
+}
+
+.trade_filter_group input[type="number"],
+.trade_filter_group input[type="text"],
+.trade_filter_group select {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.9);
+    color: #e5e7eb;
+    font-size: 13px;
+    min-width: 0;
+}
+
+.trade_filter_group input::placeholder {
+    color: rgba(148,163,184,0.8);
+}
+
+.trade_filter_actions {
+    margin-left: auto;
+}
+
+#filterResetBtn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: transparent;
+    color: rgb(209, 213, 219);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#filterResetBtn:hover {
+    background: rgba(55,65,81,0.9);
+}
+
 #createTradeSection {
     width: 100%;
     max-width: 900px;
@@ -171,6 +241,13 @@
     .create_trade_card {
         flex-direction: column;
         align-items: flex-start;
+    }
+    .trade_filters {
+        padding: 12px 12px;
+        gap: 12px;
+    }
+    .trade_filter_group {
+        min-width: 100%;
     }
     .trades_table th:nth-child(2),
     .trades_table td:nth-child(2) {

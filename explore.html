@@ -160,6 +160,21 @@
   </div>
 </div>
 
+<!-- Offer modal: make a price offer on an NFT -->
+<div id="offerModal" class="offer_modal_overlay">
+    <div class="offer_modal">
+        <button type="button" class="offer_modal_close">&times;</button>
+        <h3 class="offer_modal_title">Make an offer</h3>
+        <p id="offerModalNft" class="offer_modal_nft"></p>
+        <div class="offer_field">
+                <label for="offerPriceInput">Offer price (ETH)</label>
+                <input type="number" id="offerPriceInput" min="0" step="0.0001" placeholder="0.0000" />
+        </div>
+        <div id="offerStatus" class="offer_status"></div>
+        <button id="offerConfirmBtn" class="offer_confirm_btn">Send offer</button>
+    </div>
+</div>
+
 
     </div>
 <script src="script.js"></script>

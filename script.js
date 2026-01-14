@@ -12,14 +12,110 @@ fetch('check_auth.php')
     
 // --- LOGICA PENTRU NFT-URI ȘI INTERFAȚĂ ---
 
-// Elementele DOM
+// Elementele DOM comune
 const container = document.getElementById('nftsContainer');
-// quick load log and clear placeholder if present
 console.log('script.js loaded');
 const globalAproxPlaceholder = document.getElementById('aprox');
 if (globalAproxPlaceholder && globalAproxPlaceholder.textContent && globalAproxPlaceholder.textContent.includes('xxxx')) {
     globalAproxPlaceholder.textContent = '≈ $0.00 USD';
 }
+
+// Offer modal elements – available on any page that includes the markup
+const offerModal = document.getElementById('offerModal');
+const offerModalNft = document.getElementById('offerModalNft');
+const offerPriceInput = document.getElementById('offerPriceInput');
+const offerConfirmBtn = document.getElementById('offerConfirmBtn');
+const offerStatus = document.getElementById('offerStatus');
+const offerModalClose = offerModal ? offerModal.querySelector('.offer_modal_close') : null;
+let currentOfferNftId = null;
+
+function openOfferModal(nft) {
+    if (!offerModal || !offerPriceInput || !nft) return;
+    currentOfferNftId = nft.id;
+    if (offerModalNft) {
+        offerModalNft.textContent = nft.name ? ('For NFT: ' + nft.name) : '';
+    }
+    offerPriceInput.value = nft.price || '';
+    if (offerStatus) {
+        offerStatus.textContent = '';
+        offerStatus.style.color = '#9ca3af';
+    }
+    offerModal.style.display = 'flex';
+}
+
+function closeOfferModal() {
+    if (!offerModal) return;
+    offerModal.style.display = 'none';
+}
+
+if (offerModal && offerModalClose) {
+    offerModalClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeOfferModal();
+    });
+    offerModal.addEventListener('click', (e) => {
+        if (e.target === offerModal) closeOfferModal();
+    });
+}
+
+if (offerConfirmBtn && offerPriceInput) {
+    offerConfirmBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!currentOfferNftId) return;
+        let raw = String(offerPriceInput.value || '').replace(',', '.');
+        const val = parseFloat(raw);
+        if (!val || val <= 0) {
+            if (offerStatus) {
+                offerStatus.style.color = '#f97373';
+                offerStatus.textContent = 'Enter a positive offer price.';
+            }
+            return;
+        }
+        try {
+            offerConfirmBtn.disabled = true;
+            if (offerStatus) {
+                offerStatus.style.color = '#9ca3af';
+                offerStatus.textContent = 'Sending offer...';
+            }
+            const resp = await fetch('create_offer.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nft_id: currentOfferNftId, price: val })
+            });
+            const data = await resp.json();
+            if (resp.status === 401 || (data && data.error === 'not_authenticated')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!resp.ok || !data || !data.ok) {
+                const code = data && data.error ? data.error : 'unknown_error';
+                let msg = 'Could not send offer.';
+                if (code === 'cannot_offer_on_own_nft') msg = 'You cannot send an offer on your own NFT.';
+                if (code === 'nft_not_found') msg = 'NFT not found.';
+                if (code === 'insufficient_funds') msg = 'You do not have enough balance to cover this offer.';
+                if (offerStatus) {
+                    offerStatus.style.color = '#f97373';
+                    offerStatus.textContent = msg;
+                }
+            } else {
+                if (offerStatus) {
+                    offerStatus.style.color = '#10b981';
+                    offerStatus.textContent = 'Offer sent successfully.';
+                }
+                setTimeout(() => { closeOfferModal(); }, 1200);
+            }
+        } catch (err) {
+            console.error('create_offer failed', err);
+            if (offerStatus) {
+                offerStatus.style.color = '#f97373';
+                offerStatus.textContent = 'Network error while sending offer.';
+            }
+        } finally {
+            offerConfirmBtn.disabled = false;
+        }
+    });
+}
+
 // Verificăm dacă există containerul (pentru a nu da eroare pe pagini unde nu sunt NFT-uri)
 if (container) {
     const popup = document.getElementById('nftPopup');
@@ -32,7 +128,7 @@ if (container) {
     const popupCreator = document.getElementById('popupCreator');
     const sendRequestBtn = document.getElementById('sendRequestBtn');
     const wishlistBtn = document.getElementById('wishlistBtn');
-    const closeBtn = popup ? popup.querySelector('.close') : null;
+     const closeBtn = popup ? popup.querySelector('.close') : null;
 
     // Elementele pentru Filtrare
     const filterButtonDiv = document.getElementById('filterButton');
@@ -113,6 +209,35 @@ if (container) {
             option.value = category;
             option.textContent = category;
             categoryFilterSelect.appendChild(option);
+        });
+    }
+
+    function openOfferModal(nft) {
+        if (!offerModal || !offerPriceInput || !offerConfirmBtn) return;
+        currentOfferNftId = nft.id;
+        if (offerModalNft) {
+            offerModalNft.textContent = nft.name ? ('For NFT: ' + nft.name) : '';
+        }
+        offerPriceInput.value = nft.price || '';
+        if (offerStatus) {
+            offerStatus.textContent = '';
+            offerStatus.style.color = '#9ca3af';
+        }
+        offerModal.style.display = 'flex';
+    }
+
+    function closeOfferModal() {
+        if (!offerModal) return;
+        offerModal.style.display = 'none';
+    }
+
+    if (offerModal && offerModalClose) {
+        offerModalClose.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeOfferModal();
+        });
+        offerModal.addEventListener('click', (e) => {
+            if (e.target === offerModal) closeOfferModal();
         });
     }
 
@@ -375,12 +500,22 @@ if (container) {
                     };
                 }
 
-                // Send Request button: redirect to contact with nft id
+                // Send Request button: if owner -> place sell, else open offer modal
                 if (sendRequestBtn && nft.id) {
-                    sendRequestBtn.onclick = () => {
-                        const url = 'contact.html?nft_id=' + encodeURIComponent(nft.id);
-                        window.location.href = url;
-                    };
+                    const isOwner = currentUsername && ownerNameRaw && currentUsername.toLowerCase() === ownerNameRaw.toLowerCase();
+                    if (isOwner) {
+                        sendRequestBtn.textContent = 'Place Sell';
+                        sendRequestBtn.onclick = () => {
+                            const url = 'trade.html?nft_id=' + encodeURIComponent(nft.id);
+                            window.location.href = url;
+                        };
+                    } else {
+                        sendRequestBtn.textContent = 'Send offer';
+                        sendRequestBtn.onclick = (e) => {
+                            e.preventDefault();
+                            openOfferModal(nft);
+                        };
+                    }
                 }
             });
             

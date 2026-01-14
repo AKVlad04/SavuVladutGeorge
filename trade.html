@@ -38,6 +38,39 @@
             <span class="trade_subtitle">All NFTs currently listed for sale by their owners.</span>
         </div>
 
+        <div class="trade_filters">
+            <div class="trade_filter_group">
+                <label>Price range (ETH)</label>
+                <div class="trade_filter_row">
+                    <input type="number" id="filterPriceMin" min="0" step="0.0001" placeholder="Min" />
+                    <span class="trade_filter_sep">-</span>
+                    <input type="number" id="filterPriceMax" min="0" step="0.0001" placeholder="Max" />
+                </div>
+            </div>
+            <div class="trade_filter_group">
+                <label>Category</label>
+                <select id="filterCategory">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="trade_filter_group">
+                <label>Owner</label>
+                <input type="text" id="filterOwner" placeholder="Search owner" />
+            </div>
+            <div class="trade_filter_group">
+                <label>Sort by</label>
+                <select id="filterSort">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                </select>
+            </div>
+            <div class="trade_filter_actions">
+                <button type="button" id="filterResetBtn">Reset</button>
+            </div>
+        </div>
+
         <div id="createTradeSection"></div>
 
         <div class="trades_table_wrapper">
@@ -46,9 +79,9 @@
                     <tr>
                         <th>Thumbnail</th>
                         <th>NFT</th>
-                        <th>Creator</th>
+                        <th>Owner</th>
                         <th>Selling Price</th>
-                        <th>Value (USD)</th>
+                        <th>Value (ETH)</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -129,10 +162,166 @@
     <script src="owner.js"></script>
     <script>
         let currentUserId = null;
+        let allTrades = [];
 
         function getQueryParam(name) {
             const url = new URL(window.location.href);
             return url.searchParams.get(name);
+        }
+
+        function applyTradeFiltersAndRender() {
+            const tbody = document.getElementById('tradesBody');
+            if (!tbody) return;
+            if (!Array.isArray(allTrades) || allTrades.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No trades yet.</td></tr>';
+                return;
+            }
+
+            const minEl = document.getElementById('filterPriceMin');
+            const maxEl = document.getElementById('filterPriceMax');
+            const catEl = document.getElementById('filterCategory');
+            const ownerEl = document.getElementById('filterOwner');
+            const sortEl = document.getElementById('filterSort');
+
+            const minVal = minEl && minEl.value ? parseFloat(minEl.value) : null;
+            const maxVal = maxEl && maxEl.value ? parseFloat(maxEl.value) : null;
+            const catVal = catEl ? String(catEl.value || '').trim().toLowerCase() : '';
+            const ownerVal = ownerEl ? String(ownerEl.value || '').trim().toLowerCase() : '';
+            const sortVal = sortEl ? sortEl.value : 'newest';
+
+            let list = allTrades.slice();
+
+            // filter by price
+            if (minVal !== null && !isNaN(minVal)) {
+                list = list.filter(t => (parseFloat(t.price) || 0) >= minVal);
+            }
+            if (maxVal !== null && !isNaN(maxVal)) {
+                list = list.filter(t => (parseFloat(t.price) || 0) <= maxVal);
+            }
+
+            // filter by category
+            if (catVal) {
+                list = list.filter(t => (t.category || '').toLowerCase() === catVal);
+            }
+
+            // filter by owner
+            if (ownerVal) {
+                list = list.filter(t => (t.owner_name || '').toLowerCase().includes(ownerVal));
+            }
+
+            // sort
+            list.sort((a, b) => {
+                const pa = parseFloat(a.price) || 0;
+                const pb = parseFloat(b.price) || 0;
+                const da = new Date(a.created_at).getTime() || 0;
+                const db = new Date(b.created_at).getTime() || 0;
+                switch (sortVal) {
+                    case 'price_asc':
+                        return pa - pb;
+                    case 'price_desc':
+                        return pb - pa;
+                    case 'oldest':
+                        return da - db;
+                    case 'newest':
+                    default:
+                        return db - da;
+                }
+            });
+
+            tbody.innerHTML = '';
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No trades match your filters.</td></tr>';
+                return;
+            }
+
+            list.forEach(tr => {
+                const trEl = document.createElement('tr');
+                const priceEth = (tr.price || 0).toFixed(4);
+                const baseEth = (tr.base_price || 0).toFixed(4);
+                const isOwner = currentUserId && Number(currentUserId) === Number(tr.seller_id);
+                trEl.innerHTML = `
+                        <td><img src="${tr.image_url}" alt="${tr.name}" class="trade_thumb"></td>
+                        <td>${tr.name}</td>
+                        <td>${tr.owner_name || ''}</td>
+                        <td>${priceEth} ETH</td>
+                        <td>${baseEth} ETH</td>
+                        <td>
+                            ${isOwner
+                                ? '<button class="trade_cancel_btn" type="button">Cancel</button>'
+                                : '<button class="trade_accept_btn" type="button">Accept</button>'}
+                        </td>
+                    `;
+                const acceptBtn = trEl.querySelector('.trade_accept_btn');
+                const cancelBtn = trEl.querySelector('.trade_cancel_btn');
+
+                if (acceptBtn) {
+                    acceptBtn.addEventListener('click', async () => {
+                        try {
+                            acceptBtn.disabled = true;
+                            const resp = await fetch('trade_action.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ trade_id: tr.trade_id, action: 'accept' })
+                            });
+                            const dataResp = await resp.json();
+                            if (resp.status === 401 || (dataResp && (dataResp.error === 'not_authenticated' || dataResp.error === 'not_logged_in'))) {
+                                window.location.href = 'login.html';
+                                return;
+                            }
+                            if (!resp.ok || !dataResp.ok) {
+                                const code = dataResp && dataResp.error ? dataResp.error : 'unknown_error';
+                                if (code === 'insufficient_funds') {
+                                    alert('Insufficient balance to buy this NFT.');
+                                } else if (code === 'cannot_accept_own_trade') {
+                                    alert('You cannot accept your own trade.');
+                                } else if (code === 'trade_not_open') {
+                                    alert('This trade is no longer open.');
+                                } else {
+                                    alert('Could not accept trade.');
+                                }
+                            } else {
+                                alert('Trade accepted successfully.');
+                                await loadTrades();
+                            }
+                        } catch (e) {
+                            console.error('accept trade failed', e);
+                            alert('Network error while accepting trade.');
+                        } finally {
+                            acceptBtn.disabled = false;
+                        }
+                    });
+                }
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', async () => {
+                        if (!confirm('Cancel this trade?')) return;
+                        try {
+                            cancelBtn.disabled = true;
+                            const resp = await fetch('trade_action.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ trade_id: tr.trade_id, action: 'cancel' })
+                            });
+                            const dataResp = await resp.json();
+                            if (resp.status === 401 || (dataResp && (dataResp.error === 'not_authenticated' || dataResp.error === 'not_logged_in'))) {
+                                window.location.href = 'login.html';
+                                return;
+                            }
+                            if (!resp.ok || !dataResp.ok) {
+                                alert('Could not cancel trade.');
+                            } else {
+                                await loadTrades();
+                            }
+                        } catch (e) {
+                            console.error('cancel trade failed', e);
+                            alert('Network error while cancelling trade.');
+                        } finally {
+                            cancelBtn.disabled = false;
+                        }
+                    });
+                }
+                tbody.appendChild(trEl);
+            });
         }
 
         async function loadTrades() {
@@ -143,98 +332,23 @@
                 const resp = await fetch('get_trades.php');
                 const data = await resp.json();
                 if (!Array.isArray(data) || data.length === 0) {
+                    allTrades = [];
                     tbody.innerHTML = '<tr><td colspan="6">No trades yet.</td></tr>';
                     return;
                 }
-                tbody.innerHTML = '';
-                data.forEach(tr => {
-                    const trEl = document.createElement('tr');
-                    const priceEth = (tr.price || 0).toFixed(4);
-                    const valueUsd = (tr.value_usd || 0).toFixed(2);
-                    const isOwner = currentUserId && Number(currentUserId) === Number(tr.seller_id);
-                    trEl.innerHTML = `
-                        <td><img src="${tr.image_url}" alt="${tr.name}" class="trade_thumb"></td>
-                        <td>${tr.name}</td>
-                        <td>${tr.creator_name || ''}</td>
-                        <td>${priceEth} ETH</td>
-                        <td>$${valueUsd}</td>
-                        <td>
-                            ${isOwner
-                                ? '<button class="trade_cancel_btn" type="button">Cancel</button>'
-                                : '<button class="trade_accept_btn" type="button">Accept</button>'}
-                        </td>
-                    `;
-                    const acceptBtn = trEl.querySelector('.trade_accept_btn');
-                    const cancelBtn = trEl.querySelector('.trade_cancel_btn');
-
-                    if (acceptBtn) {
-                        acceptBtn.addEventListener('click', async () => {
-                            try {
-                                acceptBtn.disabled = true;
-                                const resp = await fetch('trade_action.php', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ trade_id: tr.trade_id, action: 'accept' })
-                                });
-                                const dataResp = await resp.json();
-                                if (resp.status === 401 || (dataResp && (dataResp.error === 'not_authenticated' || dataResp.error === 'not_logged_in'))) {
-                                    window.location.href = 'login.html';
-                                    return;
-                                }
-                                if (!resp.ok || !dataResp.ok) {
-                                    const code = dataResp && dataResp.error ? dataResp.error : 'unknown_error';
-                                    if (code === 'insufficient_funds') {
-                                        alert('Insufficient balance to buy this NFT.');
-                                    } else if (code === 'cannot_accept_own_trade') {
-                                        alert('You cannot accept your own trade.');
-                                    } else if (code === 'trade_not_open') {
-                                        alert('This trade is no longer open.');
-                                    } else {
-                                        alert('Could not accept trade.');
-                                    }
-                                } else {
-                                    alert('Trade accepted successfully.');
-                                    loadTrades();
-                                }
-                            } catch (e) {
-                                console.error('accept trade failed', e);
-                                alert('Network error while accepting trade.');
-                            } finally {
-                                acceptBtn.disabled = false;
-                            }
-                        });
-                    }
-
-                    if (cancelBtn) {
-                        cancelBtn.addEventListener('click', async () => {
-                            if (!confirm('Cancel this trade?')) return;
-                            try {
-                                cancelBtn.disabled = true;
-                                const resp = await fetch('trade_action.php', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ trade_id: tr.trade_id, action: 'cancel' })
-                                });
-                                const dataResp = await resp.json();
-                                if (resp.status === 401 || (dataResp && (dataResp.error === 'not_authenticated' || dataResp.error === 'not_logged_in'))) {
-                                    window.location.href = 'login.html';
-                                    return;
-                                }
-                                if (!resp.ok || !dataResp.ok) {
-                                    alert('Could not cancel trade.');
-                                } else {
-                                    loadTrades();
-                                }
-                            } catch (e) {
-                                console.error('cancel trade failed', e);
-                                alert('Network error while cancelling trade.');
-                            } finally {
-                                cancelBtn.disabled = false;
-                            }
-                        });
-                    }
-                    tbody.appendChild(trEl);
-                });
+                allTrades = data;
+                // populate category filter options from data
+                const catEl = document.getElementById('filterCategory');
+                if (catEl && catEl.options.length <= 1) {
+                    const cats = Array.from(new Set(data.map(t => t.category).filter(Boolean))).sort();
+                    cats.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c;
+                        opt.textContent = c;
+                        catEl.appendChild(opt);
+                    });
+                }
+                applyTradeFiltersAndRender();
             } catch (e) {
                 console.error('Failed to load trades', e);
                 tbody.innerHTML = '<tr><td colspan="6">Failed to load trades.</td></tr>';
@@ -340,6 +454,33 @@
                 .finally(() => {
                     initCreateTradeSection();
                     loadTrades();
+
+                    // hook up filters
+                    const minEl = document.getElementById('filterPriceMin');
+                    const maxEl = document.getElementById('filterPriceMax');
+                    const catEl = document.getElementById('filterCategory');
+                    const ownerEl = document.getElementById('filterOwner');
+                    const sortEl = document.getElementById('filterSort');
+                    const resetBtn = document.getElementById('filterResetBtn');
+
+                    const onChange = () => applyTradeFiltersAndRender();
+
+                    if (minEl) minEl.addEventListener('input', onChange);
+                    if (maxEl) maxEl.addEventListener('input', onChange);
+                    if (catEl) catEl.addEventListener('change', onChange);
+                    if (ownerEl) ownerEl.addEventListener('input', () => {
+                        // mic debounce vizual nu e necesar, suficient oninput
+                        onChange();
+                    });
+                    if (sortEl) sortEl.addEventListener('change', onChange);
+                    if (resetBtn) resetBtn.addEventListener('click', () => {
+                        if (minEl) minEl.value = '';
+                        if (maxEl) maxEl.value = '';
+                        if (catEl) catEl.value = '';
+                        if (ownerEl) ownerEl.value = '';
+                        if (sortEl) sortEl.value = 'newest';
+                        applyTradeFiltersAndRender();
+                    });
                 });
         });
     </script>

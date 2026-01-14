@@ -435,6 +435,57 @@ label[for="walletInput"] {
     gap: 10px;
 }
 
+.activity_filters_bar {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.activity_filter_group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.activity_filter_group label {
+    font-size: 13px;
+    color: rgb(148,163,184);
+}
+
+.activity_filter_group select,
+.activity_filter_group input[type="text"] {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.9);
+    color: #e5e7eb;
+    font-size: 13px;
+}
+
+.activity_filter_group input::placeholder {
+    color: rgba(148,163,184,0.8);
+}
+
+.activity_filter_actions {
+    margin-left: auto;
+}
+
+#activityExportBtn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: transparent;
+    color: rgb(209,213,219);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#activityExportBtn:hover {
+    background: rgba(55,65,81,0.9);
+}
+
 .activity_item {
     display: flex;
     justify-content: space-between;

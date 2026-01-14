@@ -67,7 +67,6 @@
             <div class="profile_tabs">
                 <button class="profile_tab active" data-tab="collected">Collected</button>
                 <button class="profile_tab" data-tab="created">Created</button>
-                <button class="profile_tab" data-tab="activity">Activity</button>
             </div>
             <div class="profile_tab_panels">
                 <div class="profile_tab_panel active" data-tab="collected">
@@ -75,9 +74,6 @@
                 </div>
                 <div class="profile_tab_panel" data-tab="created">
                     <div id="createdGrid" class="nfts"></div>
-                </div>
-                <div class="profile_tab_panel" data-tab="activity">
-                    <div id="activityList" class="activity_list"></div>
                 </div>
             </div>
         </div>
@@ -141,6 +137,21 @@
         </div>
       </div>
     </div>
+
+        <!-- Offer modal: make a price offer on this user's NFT -->
+        <div id="offerModal" class="offer_modal_overlay">
+            <div class="offer_modal">
+                <button type="button" class="offer_modal_close">&times;</button>
+                <h3 class="offer_modal_title">Make an offer</h3>
+                <p id="offerModalNft" class="offer_modal_nft"></p>
+                <div class="offer_field">
+                        <label for="offerPriceInput">Offer price (ETH)</label>
+                        <input type="number" id="offerPriceInput" min="0" step="0.0001" placeholder="0.0000" />
+                </div>
+                <div id="offerStatus" class="offer_status"></div>
+                <button id="offerConfirmBtn" class="offer_confirm_btn">Send offer</button>
+            </div>
+        </div>
     <script src="script.js"></script>
     <script src="owner.js"></script>
     <script>
@@ -199,18 +210,9 @@
 
                     const collectedGrid = document.getElementById('collectedGrid');
                     const createdGrid = document.getElementById('createdGrid');
-                    const activityList = document.getElementById('activityList');
 
                     renderProfileNftGrid(collectedGrid, collected, 'No collected NFTs yet.');
                     renderProfileNftGrid(createdGrid, created, 'No created NFTs yet.');
-
-                    if (activityList) {
-                        activityList.innerHTML = '';
-                        const p = document.createElement('p');
-                        p.className = 'empty_msg';
-                        p.textContent = 'No activity yet.';
-                        activityList.appendChild(p);
-                    }
 
                     const tabsContainer = document.getElementById('profileTabsContainer');
                     if (tabsContainer) tabsContainer.style.display = 'block';
@@ -388,16 +390,15 @@
             aproxEl.textContent = '≈ $' + (ethVal * rate).toFixed(2) + ' USD';
         }
 
-        // Configure Send Request button (public profile always shows Send Request)
-        if (sendRequestBtn) {
-            sendRequestBtn.textContent = 'Send Request';
-            sendRequestBtn.onclick = null;
-            if (nft.id) {
-                sendRequestBtn.onclick = () => {
-                    const url = 'contact.html?nft_id=' + encodeURIComponent(nft.id);
-                    window.location.href = url;
-                };
-            }
+        // Configure Send offer button on public profile
+        if (sendRequestBtn && nft.id) {
+            sendRequestBtn.textContent = 'Send offer';
+            sendRequestBtn.onclick = (e) => {
+                e.preventDefault();
+                if (typeof openOfferModal === 'function') {
+                    openOfferModal(nft);
+                }
+            };
         }
 
         // Configure wishlist button in popup

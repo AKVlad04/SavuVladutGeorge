@@ -96,15 +96,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // --- Minting Activity (small line chart) ---
-        const mintCtx = document.getElementById('mintChart').getContext('2d');
-        const mintLabels = (data.mint_activity || []).map(d => d.date);
-        const mintValues = (data.mint_activity || []).map(d => d.count);
-        new Chart(mintCtx, {
-            type: 'line',
-            data: { labels: mintLabels, datasets: [{ label: 'Minted', data: mintValues, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)', tension:0.3, pointRadius:0 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, elements: { point: { radius: 0 } } }
-        });
+        // --- Top Creators (Last 30 days, by volume) ---
+        const topCreators = data.top_creators || [];
+        const topCreatorsCanvas = document.getElementById('topCreatorsChart');
+        if (topCreatorsCanvas && topCreators.length) {
+            const tcCtx = topCreatorsCanvas.getContext('2d');
+            const tcLabels = topCreators.map(c => c.username);
+            const tcValues = topCreators.map(c => c.volume);
+            new Chart(tcCtx, {
+                type: 'bar',
+                data: {
+                    labels: tcLabels,
+                    datasets: [{
+                        label: 'Volume (ETH)',
+                        data: tcValues,
+                        backgroundColor: 'rgba(99,102,241,0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+        }
     }
 
     function mockOverview() {
@@ -118,7 +139,23 @@ document.addEventListener('DOMContentLoaded', () => {
             mint.push({ date, count: Math.floor(Math.random()*6) });
         }
         const totalVol = sales.reduce((s,x)=>s+x.volume,0).toFixed(2);
-        return { total_users: 123, total_nfts: 456, total_volume: totalVol, sales_last_30: sales, categories_distribution: catDist, mint_activity: mint };
+        // mock top creators (5 entries)
+        const mockTopCreators = [
+            { creator_id: 1, username: 'creator_one', volume: 12.5 },
+            { creator_id: 2, username: 'creator_two', volume: 9.3 },
+            { creator_id: 3, username: 'creator_three', volume: 7.1 },
+            { creator_id: 4, username: 'creator_four', volume: 5.4 },
+            { creator_id: 5, username: 'creator_five', volume: 3.2 }
+        ];
+        return {
+            total_users: 123,
+            total_nfts: 456,
+            total_volume: totalVol,
+            sales_last_30: sales,
+            categories_distribution: catDist,
+            mint_activity: mint,
+            top_creators: mockTopCreators
+        };
     }
 
     // Users table

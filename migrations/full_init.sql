@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS trades (
   CONSTRAINT fk_trades_buyer FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 10. BALANCE TRANSACTIONS TABLE (deposit / withdraw history)
+-- 10. BALANCE TRANSACTIONS TABLE (deposit / withdraw / trade history)
 CREATE TABLE IF NOT EXISTS balance_transactions (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id INT NOT NULL,
@@ -97,6 +97,28 @@ CREATE TABLE IF NOT EXISTS balance_transactions (
   INDEX (user_id),
   INDEX (created_at),
   CONSTRAINT fk_balance_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. OFFERS TABLE (price offers on NFTs)
+CREATE TABLE IF NOT EXISTS offers (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nft_id INT UNSIGNED NOT NULL,
+  seller_id INT NOT NULL,
+  buyer_id INT NOT NULL,
+  price DECIMAL(16,8) NOT NULL,
+  parent_offer_id INT UNSIGNED DEFAULT NULL,
+  funds_reserved TINYINT(1) NOT NULL DEFAULT 1,
+  status ENUM('open','accepted','rejected','cancelled') NOT NULL DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX (nft_id),
+  INDEX (seller_id),
+  INDEX (buyer_id),
+   INDEX (parent_offer_id),
+  INDEX (status),
+  CONSTRAINT fk_offers_nft FOREIGN KEY (nft_id) REFERENCES nfts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_offers_seller FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_offers_buyer FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 6. POPULATE VERIFICATION REQUESTS (optional)

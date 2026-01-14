@@ -101,8 +101,9 @@
 			<div class="profile_tabs_container" id="profileTabsContainer" style="width:100%; max-width:1100px; margin-top:30px; display:none">
 				<div class="profile_tabs">
 					<button class="profile_tab active" data-tab="collected">Collected</button>
-					<button class="profile_tab" data-tab="created">Created</button>
-					<button class="profile_tab" data-tab="activity">Activity</button>
+                    <button class="profile_tab" data-tab="created">Created</button>
+                    <button class="profile_tab" data-tab="offers">Offers</button>
+                    <button class="profile_tab" data-tab="activity">Activity</button>
 				</div>
 				<div class="profile_tab_panels">
 					<div class="profile_tab_panel active" data-tab="collected">
@@ -111,9 +112,34 @@
 					<div class="profile_tab_panel" data-tab="created">
                         <div id="createdGrid" class="nfts"></div>
 					</div>
-					<div class="profile_tab_panel" data-tab="activity">
-						<div id="activityList" class="activity_list"></div>
-					</div>
+                    <div class="profile_tab_panel" data-tab="offers">
+                        <h3 class="offers_section_title">Offers received on your NFTs</h3>
+                        <div id="offersList" class="offers_list"></div>
+                        <h3 class="offers_section_title" style="margin-top:24px;">Offers you sent</h3>
+                        <div id="sentOffersList" class="offers_list"></div>
+                    </div>
+                    <div class="profile_tab_panel" data-tab="activity">
+                        <div class="activity_filters_bar">
+                            <div class="activity_filter_group">
+                                <label for="activityTypeFilter">Type</label>
+                                <select id="activityTypeFilter">
+                                    <option value="">All</option>
+                                    <option value="deposit">Deposits</option>
+                                    <option value="withdraw">Withdrawals</option>
+                                    <option value="offers">Offers (placed/refunded)</option>
+                                    <option value="trades">Trades (bought/sold)</option>
+                                </select>
+                            </div>
+                            <div class="activity_filter_group">
+                                <label for="activitySearch">Search</label>
+                                <input type="text" id="activitySearch" placeholder="Search by NFT name" />
+                            </div>
+                            <div class="activity_filter_actions">
+                                <button type="button" id="activityExportBtn">Export CSV</button>
+                            </div>
+                        </div>
+                        <div id="activityList" class="activity_list"></div>
+                    </div>
 				</div>
 			</div>
     </div>
@@ -176,6 +202,21 @@
             </div>
         </div>
       </div>
+    </div>
+
+    <!-- Offer modal: make a price offer on an NFT -->
+    <div id="offerModal" class="offer_modal_overlay">
+        <div class="offer_modal">
+            <button type="button" class="offer_modal_close">&times;</button>
+            <h3 class="offer_modal_title">Make an offer</h3>
+            <p id="offerModalNft" class="offer_modal_nft"></p>
+            <div class="offer_field">
+                    <label for="offerPriceInput">Offer price (ETH)</label>
+                    <input type="number" id="offerPriceInput" min="0" step="0.0001" placeholder="0.0000" />
+            </div>
+            <div id="offerStatus" class="offer_status"></div>
+            <button id="offerConfirmBtn" class="offer_confirm_btn">Send offer</button>
+        </div>
     </div>
 
     <div id="verifyModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
@@ -300,6 +341,12 @@
                             avatarEl.textContent = data.initial;
                         }
                         
+                        // Store current user id globally for offer role logic
+                        window.__currentUserId = data.id;
+
+                        // Expune id-ul utilizatorului logat pentru logica de oferte
+                        window.__currentUserId = data.id;
+
                         // Balanță cont ETH (imaginară)
                         const balanceDisplay = document.getElementById('balanceDisplay');
                         const balanceStatus = document.getElementById('balanceStatus');
@@ -382,25 +429,21 @@
                             }
 
                             // Configure Send Request / Place Sell button
-                            if (sendRequestBtn) {
+                            if (sendRequestBtn && nft.id) {
                                 const isOwner = nft.owner_id && Number(nft.owner_id) === Number(data.id);
                                 sendRequestBtn.onclick = null;
                                 if (isOwner) {
                                     sendRequestBtn.textContent = 'Place Sell';
-                                    if (nft.id) {
-                                        sendRequestBtn.onclick = () => {
-                                            const url = 'trade.html?nft_id=' + encodeURIComponent(nft.id);
-                                            window.location.href = url;
-                                        };
-                                    }
-                                } else {
-                                    sendRequestBtn.textContent = 'Send Request';
-                                    if (nft.id) {
-                                        sendRequestBtn.onclick = () => {
-                                            const url = 'contact.html?nft_id=' + encodeURIComponent(nft.id);
-                                            window.location.href = url;
-                                        };
-                                    }
+                                    sendRequestBtn.onclick = () => {
+                                        const url = 'trade.html?nft_id=' + encodeURIComponent(nft.id);
+                                        window.location.href = url;
+                                    };
+                                } else if (typeof openOfferModal === 'function') {
+                                    sendRequestBtn.textContent = 'Send offer';
+                                    sendRequestBtn.onclick = (e) => {
+                                        e.preventDefault();
+                                        openOfferModal(nft);
+                                    };
                                 }
                             }
 
@@ -553,81 +596,613 @@
                                             p.classList.remove('active');
                                         }
                                     });
+
+                                    if (target === 'activity') {
+                                        loadActivityList();
+                                    }
+                                    if (target === 'offers') {
+                                        loadOffersList();
+                                        if (typeof loadSentOffersList === 'function') {
+                                            loadSentOffersList();
+                                        }
+                                    }
                                 });
                             });
                         }
 
                         initProfileTabs();
 
-                        function loadActivityList() {
+                        let activityItemsCache = [];
+
+                        function renderActivityList() {
                             const activityList = document.getElementById('activityList');
                             if (!activityList) return;
                             activityList.innerHTML = '';
+
+                            if (!Array.isArray(activityItemsCache) || activityItemsCache.length === 0) {
+                                const p = document.createElement('p');
+                                p.className = 'empty_msg';
+                                p.textContent = 'No balance activity yet.';
+                                activityList.appendChild(p);
+                                return;
+                            }
+
+                            const typeSel = document.getElementById('activityTypeFilter');
+                            const searchInput = document.getElementById('activitySearch');
+                            const typeVal = typeSel ? typeSel.value : '';
+                            const searchVal = searchInput ? String(searchInput.value || '').trim().toLowerCase() : '';
+
+                            const filtered = activityItemsCache.filter(item => {
+                                // type filter
+                                if (typeVal === 'deposit' && item.type !== 'deposit') return false;
+                                if (typeVal === 'withdraw' && item.type !== 'withdraw') return false;
+                                if (typeVal === 'offers') {
+                                    // offers: deposit/withdraw with nft_id
+                                    if (!(item.nft_id && (item.type === 'deposit' || item.type === 'withdraw'))) return false;
+                                }
+                                if (typeVal === 'trades') {
+                                    if (!(item.type === 'buy' || item.type === 'sell')) return false;
+                                }
+
+                                // search filter (by nft_name text)
+                                if (searchVal) {
+                                    const name = (item.nft_name || '').toLowerCase();
+                                    if (!name.includes(searchVal)) return false;
+                                }
+
+                                return true;
+                            });
+
+                            if (filtered.length === 0) {
+                                const p = document.createElement('p');
+                                p.className = 'empty_msg';
+                                p.textContent = 'No activity matching current filters.';
+                                activityList.appendChild(p);
+                                return;
+                            }
+
+                            filtered.forEach(item => {
+                                const row = document.createElement('div');
+
+                                let kindClass = 'activity_deposit';
+                                if (item.type === 'withdraw') kindClass = 'activity_withdraw';
+                                if (item.type === 'buy') kindClass = 'activity_withdraw';
+                                if (item.type === 'sell') kindClass = 'activity_deposit';
+
+                                row.className = 'activity_item ' + kindClass;
+
+                                const left = document.createElement('div');
+                                left.className = 'activity_left';
+
+                                const title = document.createElement('div');
+                                title.className = 'activity_title';
+                                if (item.type === 'deposit') {
+                                    if (item.nft_id) {
+                                        title.textContent = 'Offer refund for' + (item.nft_name ? ' ' + item.nft_name : '');
+                                    } else {
+                                        title.textContent = 'Deposit';
+                                    }
+                                } else if (item.type === 'withdraw') {
+                                    if (item.nft_id) {
+                                        title.textContent = 'Offer placed on' + (item.nft_name ? ' ' + item.nft_name : '');
+                                    } else {
+                                        title.textContent = 'Withdrawal';
+                                    }
+                                } else if (item.type === 'buy') {
+                                    title.textContent = 'Bought' + (item.nft_name ? ' ' + item.nft_name : '');
+                                } else if (item.type === 'sell') {
+                                    title.textContent = 'Sold' + (item.nft_name ? ' ' + item.nft_name : '');
+                                } else {
+                                    title.textContent = item.type;
+                                }
+
+                                const date = document.createElement('div');
+                                date.className = 'activity_date';
+                                date.textContent = item.created_at || '';
+
+                                left.appendChild(title);
+                                left.appendChild(date);
+
+                                const right = document.createElement('div');
+                                right.className = 'activity_amount';
+                                let sign = '+';
+                                if (item.type === 'withdraw' || item.type === 'buy') sign = '-';
+                                const amountVal = parseFloat(item.amount) || 0;
+                                right.textContent = sign + amountVal.toFixed(4) + ' ETH';
+
+                                row.appendChild(left);
+                                row.appendChild(right);
+                                activityList.appendChild(row);
+                            });
+                        }
+
+                        function loadActivityList() {
                             fetch('get_balance_activity.php')
                                 .then(r => r.ok ? r.json() : Promise.reject())
                                 .then(act => {
-                                    if (!act || !act.ok || !Array.isArray(act.items) || act.items.length === 0) {
+                                    if (!act || !act.ok || !Array.isArray(act.items)) {
+                                        activityItemsCache = [];
+                                    } else {
+                                        activityItemsCache = act.items;
+                                    }
+                                    renderActivityList();
+
+                                    // asigură-te că filtrele Activity reacționează la input
+                                    const typeSel = document.getElementById('activityTypeFilter');
+                                    const searchInput = document.getElementById('activitySearch');
+                                    const exportBtn = document.getElementById('activityExportBtn');
+
+                                    if (typeSel && !typeSel._boundActivityChange) {
+                                        typeSel.addEventListener('change', renderActivityList);
+                                        typeSel._boundActivityChange = true;
+                                    }
+                                    if (searchInput && !searchInput._boundActivityInput) {
+                                        searchInput.addEventListener('input', renderActivityList);
+                                        searchInput._boundActivityInput = true;
+                                    }
+                                    if (exportBtn && !exportBtn._boundActivityExport) {
+                                        exportBtn.addEventListener('click', () => {
+                                            if (!Array.isArray(activityItemsCache) || activityItemsCache.length === 0) {
+                                                alert('No activity to export.');
+                                                return;
+                                            }
+                                            // CSV head
+                                            const header = ['type','amount','balance_after','created_at','nft_id','nft_name'];
+                                            const rows = activityItemsCache.map(it => [
+                                                it.type || '',
+                                                (typeof it.amount !== 'undefined' ? String(it.amount) : ''),
+                                                (typeof it.balance_after !== 'undefined' ? String(it.balance_after) : ''),
+                                                it.created_at || '',
+                                                (typeof it.nft_id !== 'undefined' && it.nft_id !== null ? String(it.nft_id) : ''),
+                                                it.nft_name || ''
+                                            ]);
+
+                                            const escapeCsv = (val) => {
+                                                if (val == null) return '';
+                                                const s = String(val);
+                                                if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+                                                    return '"' + s.replace(/"/g, '""') + '"';
+                                                }
+                                                return s;
+                                            };
+
+                                            const lines = [header.map(escapeCsv).join(',')].concat(
+                                                rows.map(r => r.map(escapeCsv).join(','))
+                                            );
+                                            const csvContent = lines.join('\r\n');
+
+                                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = 'activity_history.csv';
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                            URL.revokeObjectURL(url);
+                                        });
+                                        exportBtn._boundActivityExport = true;
+                                    }
+                                })
+                                .catch(() => {
+                                    activityItemsCache = [];
+                                    renderActivityList();
+                                });
+                        }
+
+                        // Helper pentru a reîncărca NFT-urile și statisticile profilului
+                        function reloadProfileNftsSection() {
+                            fetch('nfts.php').then(r=>r.json()).then(nfts=>{
+                                if (!Array.isArray(nfts)) return;
+
+                                const collected = nfts.filter(n => n.owner_id && Number(n.owner_id) === Number(data.id));
+                                const created = nfts.filter(n => n.creator_id && Number(n.creator_id) === Number(data.id));
+
+                                const collectedCountEl = document.getElementById('statCollected');
+                                const createdCountEl = document.getElementById('statCreated');
+                                const totalValueEl = document.getElementById('statTotalValue');
+
+                                const totalValue = collected.reduce((sum, n) => sum + (parseFloat(n.price) || 0), 0);
+
+                                if (collectedCountEl) collectedCountEl.textContent = collected.length;
+                                if (createdCountEl) createdCountEl.textContent = created.length;
+                                if (totalValueEl) totalValueEl.textContent = totalValue.toFixed(2) + ' ETH';
+
+                                const collectedGrid = document.getElementById('collectedGrid');
+                                const createdGrid = document.getElementById('createdGrid');
+
+                                renderProfileNftGrid(collectedGrid, collected, 'No collected NFTs yet.');
+                                renderProfileNftGrid(createdGrid, created, 'No created NFTs yet.');
+                            }).catch(()=>{});
+                        }
+
+                        function loadOffersList() {
+                            const offersList = document.getElementById('offersList');
+                            if (!offersList) return;
+                            offersList.innerHTML = '';
+                            fetch('get_offers.php')
+                                .then(r => r.ok ? r.json() : Promise.reject())
+                                .then(payload => {
+                                    if (!payload || !payload.ok || !Array.isArray(payload.items) || payload.items.length === 0) {
                                         const p = document.createElement('p');
                                         p.className = 'empty_msg';
-                                        p.textContent = 'No balance activity yet.';
-                                        activityList.appendChild(p);
+                                        p.textContent = 'No offers yet.';
+                                        offersList.appendChild(p);
                                         return;
                                     }
-                                    act.items.forEach(item => {
+
+                                    payload.items.forEach(of => {
                                         const row = document.createElement('div');
-
-                                        let kindClass = 'activity_deposit';
-                                        if (item.type === 'withdraw') kindClass = 'activity_withdraw';
-                                        if (item.type === 'buy') kindClass = 'activity_withdraw';
-                                        if (item.type === 'sell') kindClass = 'activity_deposit';
-
-                                        row.className = 'activity_item ' + kindClass;
+                                        row.className = 'offer_item';
 
                                         const left = document.createElement('div');
-                                        left.className = 'activity_left';
+                                        left.className = 'offer_left';
 
+                                        const thumbWrap = document.createElement('div');
+                                        thumbWrap.className = 'offer_thumb';
+                                        const img = document.createElement('img');
+                                        img.src = of.image_url || 'img/placeholder.jpg';
+                                        img.alt = of.nft_name || 'NFT';
+                                        thumbWrap.appendChild(img);
+
+                                        const info = document.createElement('div');
+                                        info.className = 'offer_info';
                                         const title = document.createElement('div');
-                                        title.className = 'activity_title';
-                                        if (item.type === 'deposit') {
-                                            title.textContent = 'Deposit';
-                                        } else if (item.type === 'withdraw') {
-                                            title.textContent = 'Withdrawal';
-                                        } else if (item.type === 'buy') {
-                                            title.textContent = 'Buy' + (item.nft_name ? ' ' + item.nft_name : '');
-                                        } else if (item.type === 'sell') {
-                                            title.textContent = 'Sell' + (item.nft_name ? ' ' + item.nft_name : '');
+                                        title.className = 'offer_title';
+                                        title.textContent = of.nft_name || 'Untitled NFT';
+                                        const buyer = document.createElement('div');
+                                        buyer.className = 'offer_buyer';
+                                        // If current user is seller, this is an offer from buyer.
+                                        // If current user is buyer (counter-offer received), this shows who is selling.
+                                        if (of.seller_id && of.buyer_id && window.__currentUserId) {
+                                            const me = Number(window.__currentUserId);
+                                            if (me === Number(of.seller_id)) {
+                                                buyer.textContent = 'From ' + (of.buyer_name || 'Unknown buyer');
+                                            } else if (me === Number(of.buyer_id)) {
+                                                buyer.textContent = 'From ' + (of.seller_name || 'Unknown owner');
+                                            } else {
+                                                buyer.textContent = 'From ' + (of.buyer_name || 'Unknown user');
+                                            }
                                         } else {
-                                            title.textContent = item.type;
+                                            buyer.textContent = 'From ' + (of.buyer_name || 'Unknown user');
                                         }
+                                        const meta = document.createElement('div');
+                                        meta.className = 'offer_meta';
+                                        const priceVal = parseFloat(of.price) || 0;
+                                        meta.textContent = priceVal.toFixed(4) + ' ETH';
 
-                                        const date = document.createElement('div');
-                                        date.className = 'activity_date';
-                                        date.textContent = item.created_at || '';
+                                        info.appendChild(title);
+                                        info.appendChild(buyer);
+                                        info.appendChild(meta);
 
-                                        left.appendChild(title);
-                                        left.appendChild(date);
+                                        left.appendChild(thumbWrap);
+                                        left.appendChild(info);
 
                                         const right = document.createElement('div');
-                                        right.className = 'activity_amount';
-                                        let sign = '+';
-                                        if (item.type === 'withdraw' || item.type === 'buy') sign = '-';
-                                        const amountVal = parseFloat(item.amount) || 0;
-                                        right.textContent = sign + amountVal.toFixed(4) + ' ETH';
+                                        right.className = 'offer_right';
+                                        const status = document.createElement('span');
+                                        status.className = 'offer_status_badge offer_status_' + (of.status || 'open');
+                                        status.textContent = (of.status || 'open').charAt(0).toUpperCase() + (of.status || 'open').slice(1);
+                                        const date = document.createElement('div');
+                                        date.className = 'offer_date';
+                                        date.textContent = of.created_at || '';
+                                        right.appendChild(status);
+                                        right.appendChild(date);
+
+                                        // Actions (accept / reject / counter) only for open offers
+                                        if (of.status === 'open') {
+                                            const actions = document.createElement('div');
+                                            actions.className = 'offer_actions';
+                                            const me = window.__currentUserId ? Number(window.__currentUserId) : null;
+
+                                            const btnAccept = document.createElement('button');
+                                            btnAccept.className = 'offer_btn offer_btn_accept';
+                                            btnAccept.textContent = 'Accept';
+
+                                            const btnReject = document.createElement('button');
+                                            btnReject.className = 'offer_btn offer_btn_reject';
+                                            btnReject.textContent = 'Reject';
+
+                                            const btnCounter = document.createElement('button');
+                                            btnCounter.className = 'offer_btn offer_btn_reject';
+                                            btnCounter.textContent = 'Counter';
+
+                                            const setBusy = (busy) => {
+                                                btnAccept.disabled = busy;
+                                                btnReject.disabled = busy;
+                                                btnCounter.disabled = busy;
+                                            };
+
+                                            // Determine who initiated this offer: buyer (funds_reserved=1, parent_offer_id null) or seller (counter-offer).
+                                            const isBuyerInitiated = (Number(of.funds_reserved) === 1 && (of.parent_offer_id === null || of.parent_offer_id === undefined));
+
+                                            // For buyer-initiated offers, only seller (nft owner) can accept/reject and may send counter.
+                                            // For seller counter-offers, only buyer can accept/reject; seller may cancel from "sent" list, no counter here.
+
+                                            const canRespond = me !== null && (
+                                                (isBuyerInitiated && me === Number(of.seller_id)) ||
+                                                (!isBuyerInitiated && me === Number(of.buyer_id))
+                                            );
+
+                                            if (!canRespond) {
+                                                // No actions for this user on this offer (should not really happen with filtered API, but keep safe).
+                                            } else {
+                                                // Attach accept/reject handlers for both directions.
+                                                btnAccept.addEventListener('click', async (e) => {
+                                                    e.preventDefault();
+                                                    setBusy(true);
+                                                    try {
+                                                        const resp = await fetch('offer_action.php', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ offer_id: of.id, action: 'accept' })
+                                                        });
+                                                        const data = await resp.json();
+                                                        if (!resp.ok || !data || !data.ok) {
+                                                            const code = data && data.error ? data.error : 'unknown_error';
+                                                            console.error('offer accept failed', code, data && data.details);
+                                                            let msg = 'Could not accept offer.';
+                                                            if (code === 'insufficient_funds') msg = 'Buyer no longer has enough balance for this offer.';
+                                                            if (code === 'not_authorized_for_accept') msg = 'You are not allowed to accept this offer.';
+                                                            alert(msg);
+                                                        } else {
+                                                            loadOffersList();
+                                                            if (typeof loadSentOffersList === 'function') {
+                                                                loadSentOffersList();
+                                                            }
+                                                            if (typeof loadActivityList === 'function') {
+                                                                loadActivityList();
+                                                            }
+                                                            // actualizează imediat NFT-urile și statisticile profilului
+                                                            reloadProfileNftsSection();
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('offer accept network error', err);
+                                                        alert('Network error while accepting offer.');
+                                                    } finally {
+                                                        setBusy(false);
+                                                    }
+                                                });
+
+                                                btnReject.addEventListener('click', async (e) => {
+                                                    e.preventDefault();
+                                                    setBusy(true);
+                                                    try {
+                                                        const resp = await fetch('offer_action.php', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ offer_id: of.id, action: 'reject' })
+                                                        });
+                                                        const data = await resp.json();
+                                                        if (!resp.ok || !data || !data.ok) {
+                                                            const code = data && data.error ? data.error : 'unknown_error';
+                                                            console.error('offer reject failed', data);
+                                                            let msg = 'Could not reject offer.';
+                                                            if (code === 'not_authorized_for_reject') msg = 'You are not allowed to reject this offer.';
+                                                            alert(msg);
+                                                        } else {
+                                                            loadOffersList();
+                                                            if (typeof loadSentOffersList === 'function') {
+                                                                loadSentOffersList();
+                                                            }
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('offer reject network error', err);
+                                                        alert('Network error while rejecting offer.');
+                                                    } finally {
+                                                        setBusy(false);
+                                                    }
+                                                });
+
+                                                // Only seller can send a counter on buyer-initiated offers.
+                                                if (isBuyerInitiated && me === Number(of.seller_id)) {
+                                                    btnCounter.addEventListener('click', async (e) => {
+                                                        e.preventDefault();
+                                                        const val = prompt('New counter-offer price (ETH):', of.price);
+                                                        if (val === null) return;
+                                                        const parsed = parseFloat(String(val).replace(',', '.'));
+                                                        if (!parsed || parsed <= 0) {
+                                                            alert('Please enter a valid positive price.');
+                                                            return;
+                                                        }
+                                                        setBusy(true);
+                                                        try {
+                                                            const resp = await fetch('offer_action.php', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ offer_id: of.id, action: 'counter', new_price: parsed })
+                                                            });
+                                                            const data = await resp.json();
+                                                            if (!resp.ok || !data || !data.ok) {
+                                                                console.error('offer counter failed', data);
+                                                                let msg = 'Could not send counter-offer.';
+                                                                if (data && data.error === 'not_seller') msg = 'You are not allowed to counter this offer.';
+                                                                alert(msg);
+                                                            } else {
+                                                                // după counter, oferta inițială dispare din lista de "received",
+                                                                // iar noul counter apare în lista de "sent" fără refresh.
+                                                                loadOffersList();
+                                                                if (typeof loadSentOffersList === 'function') {
+                                                                    loadSentOffersList();
+                                                                }
+                                                                if (typeof loadActivityList === 'function') {
+                                                                    loadActivityList();
+                                                                }
+                                                            }
+                                                        } catch (err) {
+                                                            console.error('offer counter network error', err);
+                                                            alert('Network error while sending counter-offer.');
+                                                        } finally {
+                                                            setBusy(false);
+                                                        }
+                                                    });
+                                                }
+
+                                                actions.appendChild(btnAccept);
+                                                actions.appendChild(btnReject);
+                                                if (isBuyerInitiated && me === Number(of.seller_id)) {
+                                                    actions.appendChild(btnCounter);
+                                                }
+                                            }
+                                            right.appendChild(actions);
+                                        }
 
                                         row.appendChild(left);
                                         row.appendChild(right);
-                                        activityList.appendChild(row);
+                                        offersList.appendChild(row);
                                     });
                                 })
                                 .catch(() => {
                                     const p = document.createElement('p');
                                     p.className = 'empty_msg';
-                                    p.textContent = 'Could not load activity.';
-                                    activityList.appendChild(p);
+                                    p.textContent = 'Could not load offers.';
+                                    offersList.appendChild(p);
                                 });
                         }
 
-                        // Load NFTs for profile stats and tabs
+                        function loadSentOffersList() {
+                            const sentList = document.getElementById('sentOffersList');
+                            if (!sentList) return;
+                            sentList.innerHTML = '';
+                            fetch('get_sent_offers.php')
+                                .then(r => r.ok ? r.json() : Promise.reject())
+                                .then(payload => {
+                                    if (!payload || !payload.ok || !Array.isArray(payload.items) || payload.items.length === 0) {
+                                        const p = document.createElement('p');
+                                        p.className = 'empty_msg';
+                                        p.textContent = 'No sent offers yet.';
+                                        sentList.appendChild(p);
+                                        return;
+                                    }
+
+                                    payload.items.forEach(of => {
+                                        const row = document.createElement('div');
+                                        row.className = 'offer_item';
+
+                                        const left = document.createElement('div');
+                                        left.className = 'offer_left';
+
+                                        const thumbWrap = document.createElement('div');
+                                        thumbWrap.className = 'offer_thumb';
+                                        const img = document.createElement('img');
+                                        img.src = of.image_url || 'img/placeholder.jpg';
+                                        img.alt = of.nft_name || 'NFT';
+                                        thumbWrap.appendChild(img);
+
+                                        const info = document.createElement('div');
+                                        info.className = 'offer_info';
+                                        const title = document.createElement('div');
+                                        title.className = 'offer_title';
+                                        title.textContent = of.nft_name || 'Untitled NFT';
+                                        const seller = document.createElement('div');
+                                        seller.className = 'offer_buyer';
+                                        // Sent offers: show counterparty depending on who initiated.
+                                        const me = window.__currentUserId ? Number(window.__currentUserId) : null;
+                                        const isBuyerInitiated = (Number(of.funds_reserved) === 1 && (of.parent_offer_id === null || of.parent_offer_id === undefined));
+                                        if (me !== null && of.seller_id && of.buyer_id) {
+                                            if (isBuyerInitiated && me === Number(of.buyer_id)) {
+                                                // You are the buyer who initiated; show seller.
+                                                seller.textContent = 'To ' + (of.seller_name || 'Unknown owner');
+                                            } else if (!isBuyerInitiated && me === Number(of.seller_id)) {
+                                                // You are the seller who countered; show buyer.
+                                                seller.textContent = 'To ' + (of.buyer_name || 'Unknown buyer');
+                                            } else {
+                                                seller.textContent = 'To ' + (of.seller_name || 'Unknown user');
+                                            }
+                                        } else {
+                                            seller.textContent = 'To ' + (of.seller_name || 'Unknown owner');
+                                        }
+                                        const meta = document.createElement('div');
+                                        meta.className = 'offer_meta';
+                                        const priceVal = parseFloat(of.price) || 0;
+                                        meta.textContent = priceVal.toFixed(4) + ' ETH';
+
+                                        info.appendChild(title);
+                                        info.appendChild(seller);
+                                        info.appendChild(meta);
+
+                                        left.appendChild(thumbWrap);
+                                        left.appendChild(info);
+
+                                        const right = document.createElement('div');
+                                        right.className = 'offer_right';
+                                        const status = document.createElement('span');
+                                        status.className = 'offer_status_badge offer_status_' + (of.status || 'open');
+                                        status.textContent = (of.status || 'open').charAt(0).toUpperCase() + (of.status || 'open').slice(1);
+                                        const date = document.createElement('div');
+                                        date.className = 'offer_date';
+                                        date.textContent = of.created_at || '';
+                                        right.appendChild(status);
+                                        right.appendChild(date);
+
+                                        if (of.status === 'open') {
+                                            const actions = document.createElement('div');
+                                            actions.className = 'offer_actions';
+
+                                            const me2 = window.__currentUserId ? Number(window.__currentUserId) : null;
+                                            const isBuyerInitiated2 = (Number(of.funds_reserved) === 1 && (of.parent_offer_id === null || of.parent_offer_id === undefined));
+
+                                            // Only the initiator can cancel: buyer for original offers, seller for counter-offers.
+                                            const canCancel = me2 !== null && (
+                                                (isBuyerInitiated2 && me2 === Number(of.buyer_id)) ||
+                                                (!isBuyerInitiated2 && me2 === Number(of.seller_id))
+                                            );
+
+                                            if (canCancel) {
+                                                const btnCancel = document.createElement('button');
+                                                btnCancel.className = 'offer_btn offer_btn_reject';
+                                                btnCancel.textContent = 'Cancel';
+
+                                                const setBusy = (busy) => {
+                                                    btnCancel.disabled = busy;
+                                                };
+
+                                                btnCancel.addEventListener('click', async (e) => {
+                                                    e.preventDefault();
+                                                    setBusy(true);
+                                                    try {
+                                                        const resp = await fetch('offer_action.php', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ offer_id: of.id, action: 'cancel' })
+                                                        });
+                                                        const data = await resp.json();
+                                                        if (!resp.ok || !data || !data.ok) {
+                                                            console.error('offer cancel failed', data);
+                                                            alert('Could not cancel offer.');
+                                                        } else {
+                                                            loadSentOffersList();
+                                                            if (typeof loadActivityList === 'function') {
+                                                                loadActivityList();
+                                                            }
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('offer cancel network error', err);
+                                                        alert('Network error while cancelling offer.');
+                                                    } finally {
+                                                        setBusy(false);
+                                                    }
+                                                });
+
+                                                actions.appendChild(btnCancel);
+                                            }
+                                            right.appendChild(actions);
+                                        }
+
+                                        row.appendChild(left);
+                                        row.appendChild(right);
+                                        sentList.appendChild(row);
+                                    });
+                                })
+                                .catch(() => {
+                                    const p = document.createElement('p');
+                                    p.className = 'empty_msg';
+                                    p.textContent = 'Could not load sent offers.';
+                                    sentList.appendChild(p);
+                                });
+                        }
+
+                        // Load NFTs for profile stats and tabs (prima încărcare)
                         fetch('nfts.php').then(r=>r.json()).then(nfts=>{
                             if (!Array.isArray(nfts)) return;
 
@@ -653,6 +1228,10 @@
                             renderProfileNftGrid(createdGrid, created, 'No created NFTs yet.');
 
                             loadActivityList();
+                            loadOffersList();
+                            if (typeof loadSentOffersList === 'function') {
+                                loadSentOffersList();
+                            }
 
                             const tabsContainer = document.getElementById('profileTabsContainer');
                             if (tabsContainer) tabsContainer.style.display = 'block';
