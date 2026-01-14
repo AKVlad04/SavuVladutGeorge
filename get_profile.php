@@ -12,8 +12,9 @@ if (!isset($_SESSION['user_id'])) {
 // 2. Extragem datele
 try {
     $user_id = $_SESSION['user_id'];
-    // Check if wallet column exists
+    // Check if wallet / avatar columns exist
     $hasWallet = $pdo->query("SHOW COLUMNS FROM users LIKE 'wallet'")->rowCount() > 0;
+    $hasAvatar = $pdo->query("SHOW COLUMNS FROM users LIKE 'avatar_url'")->rowCount() > 0;
 
     if ($hasWallet) {
         $stmt = $pdo->prepare("SELECT username, email, status, role, wallet FROM users WHERE id = ?");
@@ -47,6 +48,14 @@ try {
             $out['is_verified'] = 0;
         }
         if ($hasWallet) $out['wallet'] = isset($user['wallet']) ? $user['wallet'] : '';
+        if ($hasAvatar) {
+            $astmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
+            $astmt->execute([$user_id]);
+            $ar = $astmt->fetch();
+            if ($ar && !empty($ar['avatar_url'])) {
+                $out['avatar_url'] = $ar['avatar_url'];
+            }
+        }
         echo json_encode($out);
     } else {
         echo json_encode(['logged_in' => false]);

@@ -51,16 +51,21 @@
                 </div>
             </div>
 
-            <a href="logout.php" class="logout_btn">Sign Out</a>
+            <div class="profile_actions">
+                <button id="accountSettingsBtn" class="account_btn">Account settings</button>
+                <a href="logout.php" class="logout_btn">Sign Out</a>
+            </div>
+
             <button id="getVerifiedBtn" class="verify_btn" style="margin-top:18px;">Get Verified</button>
-                <div class="wallet_row">
-                    <label for="walletInput">Wallet address</label>
-                    <div class="wallet_controls">
-                        <input type="text" id="walletInput" placeholder="0x..." />
-                        <button id="saveWallet">Save</button>
-                    </div>
-                    <p id="saveStatus" style="display:none"></p>
+
+            <div class="wallet_row">
+                <label for="walletInput">Wallet address</label>
+                <div class="wallet_controls">
+                    <input type="text" id="walletInput" placeholder="0x..." />
+                    <button id="saveWallet">Save</button>
                 </div>
+                <p id="saveStatus" style="display:none"></p>
+            </div>
         </div>
             <div class="owned_section" id="ownedSection" style="width:100%; max-width:1100px; margin-top:30px; display:none">
                 <h2 style="color:#fff; margin-bottom:12px">Your NFTs</h2>
@@ -112,6 +117,42 @@
         <div style="background:#23272f;padding:32px 28px;border-radius:16px;max-width:350px;width:90vw;color:#fff;box-shadow:0 4px 24px #000a;display:flex;flex-direction:column;align-items:center;">
             <div id="verifyModalMsg" style="margin-bottom:18px;font-size:1.1em;text-align:center;"></div>
             <button id="verifyModalOk" class="verify_btn" style="margin-top:8px;">OK</button>
+        </div>
+    </div>
+
+    <div id="accountModal" class="account_modal_overlay">
+        <div class="account_modal">
+            <button type="button" class="account_modal_close">&times;</button>
+            <h3 class="account_modal_title">Account settings</h3>
+
+            <div class="account_row">
+                <div class="account_field">
+                    <label for="displayNameInput">Display name</label>
+                    <div class="wallet_controls">
+                        <input type="text" id="displayNameInput" placeholder="Your username" />
+                        <button id="saveDisplayName">Save</button>
+                    </div>
+                </div>
+
+                <div class="account_field">
+                    <label>Change password</label>
+                    <div class="password_grid">
+                        <input type="password" id="currentPassword" placeholder="Current password" />
+                        <input type="password" id="newPassword" placeholder="New password" />
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password" />
+                        <button id="savePassword">Update password</button>
+                    </div>
+                </div>
+
+                <div class="account_field">
+                    <label for="avatarInput">Profile picture</label>
+                    <div class="avatar_controls">
+                        <input type="file" id="avatarInput" accept="image/png,image/jpeg,image/gif,image/webp" />
+                        <button id="saveAvatar">Upload</button>
+                    </div>
+                    <p id="accountStatus" style="display:none"></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -171,7 +212,15 @@
                         document.getElementById('userStatus').textContent = data.status;
                         document.getElementById('userRole').textContent = data.role || 'User';
                         document.getElementById('userId').textContent = "#" + data.id;
-                        document.getElementById('userAvatar').textContent = data.initial;
+                        const avatarEl = document.getElementById('userAvatar');
+                        if (data.avatar_url) {
+                            avatarEl.style.backgroundImage = 'url(' + data.avatar_url + ')';
+                            avatarEl.style.backgroundSize = 'cover';
+                            avatarEl.style.backgroundPosition = 'center';
+                            avatarEl.textContent = '';
+                        } else {
+                            avatarEl.textContent = data.initial;
+                        }
                         
                         // Facem cardul vizibil
                         document.getElementById('profileCard').style.opacity = '1';
@@ -258,6 +307,8 @@
         });
 
         // Popup close logic
+
+        // Popup close logic
         document.addEventListener('DOMContentLoaded', () => {
             const popup = document.getElementById('nftPopup');
             if (!popup) return;
@@ -297,6 +348,154 @@
                 }
             };
         }
+
+        // Account settings handlers (display name, password, avatar)
+        document.addEventListener('DOMContentLoaded', () => {
+            const accountModal = document.getElementById('accountModal');
+            const accountOpen = document.getElementById('accountSettingsBtn');
+            const accountClose = accountModal ? accountModal.querySelector('.account_modal_close') : null;
+            const displayNameInput = document.getElementById('displayNameInput');
+            const saveDisplayName = document.getElementById('saveDisplayName');
+            const currentPassword = document.getElementById('currentPassword');
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const savePassword = document.getElementById('savePassword');
+            const avatarInput = document.getElementById('avatarInput');
+            const saveAvatar = document.getElementById('saveAvatar');
+            const accountStatus = document.getElementById('accountStatus');
+
+            function openAccountModal() {
+                if (!accountModal) return;
+                accountModal.style.display = 'flex';
+            }
+
+            function closeAccountModal() {
+                if (!accountModal) return;
+                accountModal.style.display = 'none';
+            }
+
+            if (accountOpen) {
+                accountOpen.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openAccountModal();
+                });
+            }
+
+            if (accountClose) {
+                accountClose.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    closeAccountModal();
+                });
+            }
+
+            if (accountModal) {
+                accountModal.addEventListener('click', (e) => {
+                    if (e.target === accountModal) {
+                        closeAccountModal();
+                    }
+                });
+            }
+
+            function showAccountStatus(msg, ok) {
+                if (!accountStatus) return;
+                accountStatus.style.display = 'block';
+                accountStatus.style.color = ok ? '#10b981' : '#ef4444';
+                accountStatus.textContent = msg;
+                setTimeout(() => { accountStatus.style.display = 'none'; }, 5000);
+            }
+
+            // Pre-populate display name from current username
+            fetch('get_profile.php').then(r => r.ok ? r.json() : Promise.reject()).then(d => {
+                if (d && d.logged_in && displayNameInput) {
+                    displayNameInput.value = d.username || '';
+                }
+            }).catch(()=>{});
+
+            if (saveDisplayName && displayNameInput) {
+                saveDisplayName.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const val = displayNameInput.value.trim();
+                    if (!val) {
+                        showAccountStatus('Display name cannot be empty.', false);
+                        return;
+                    }
+                    const fd = new FormData();
+                    fd.append('new_username', val);
+                    fetch('update_profile.php', { method:'POST', body: fd, credentials:'include' })
+                        .then(r => r.json())
+                        .then(resp => {
+                            if (resp && resp.ok) {
+                                if (resp.username) {
+                                    const nameEl = document.getElementById('userName');
+                                    if (nameEl) nameEl.childNodes[0].nodeValue = resp.username;
+                                }
+                                showAccountStatus('Display name updated.', true);
+                            } else {
+                                showAccountStatus(resp.error || 'Could not update display name.', false);
+                            }
+                        }).catch(()=>showAccountStatus('Network error updating display name.', false));
+                });
+            }
+
+            if (savePassword && currentPassword && newPassword && confirmPassword) {
+                savePassword.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const cur = currentPassword.value;
+                    const np = newPassword.value;
+                    const cp = confirmPassword.value;
+                    if (!cur || !np || !cp) {
+                        showAccountStatus('Please fill in all password fields.', false);
+                        return;
+                    }
+                    const fd = new FormData();
+                    fd.append('current_password', cur);
+                    fd.append('new_password', np);
+                    fd.append('confirm_password', cp);
+                    fetch('update_profile.php', { method:'POST', body: fd, credentials:'include' })
+                        .then(r => r.json())
+                        .then(resp => {
+                            if (resp && resp.ok && resp.password_changed) {
+                                currentPassword.value = '';
+                                newPassword.value = '';
+                                confirmPassword.value = '';
+                                showAccountStatus('Password updated successfully.', true);
+                            } else {
+                                showAccountStatus(resp.error || 'Could not update password.', false);
+                            }
+                        }).catch(()=>showAccountStatus('Network error updating password.', false));
+                });
+            }
+
+            if (saveAvatar && avatarInput) {
+                saveAvatar.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const file = avatarInput.files[0];
+                    if (!file) {
+                        // No file chosen yet -> open file picker instead of error
+                        avatarInput.click();
+                        return;
+                    }
+                    const fd = new FormData();
+                    fd.append('avatar', file);
+                    fetch('update_profile.php', { method:'POST', body: fd, credentials:'include' })
+                        .then(r => r.json())
+                        .then(resp => {
+                            if (resp && resp.ok && resp.avatar_url) {
+                                const avatarEl2 = document.getElementById('userAvatar');
+                                if (avatarEl2) {
+                                    avatarEl2.style.backgroundImage = 'url(' + resp.avatar_url + ')';
+                                    avatarEl2.style.backgroundSize = 'cover';
+                                    avatarEl2.style.backgroundPosition = 'center';
+                                    avatarEl2.textContent = '';
+                                }
+                                showAccountStatus('Profile picture updated.', true);
+                            } else {
+                                showAccountStatus(resp.error || 'Could not update profile picture.', false);
+                            }
+                        }).catch(()=>showAccountStatus('Network error updating profile picture.', false));
+                });
+            }
+        });
     </script>
     
 
