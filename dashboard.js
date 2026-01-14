@@ -4,9 +4,13 @@
 document.addEventListener('DOMContentLoaded', () => {
         // --- VERIFICATION REQUESTS ---
     let currentUserRole = 'user';
+    let currentUsername = null;
     // determine caller role to adjust which actions are enabled and only then init data
     const rolePromise = fetch('check_auth.php').then(r=>r.json()).then(d=>{
-        if (d && d.logged_in && d.role) currentUserRole = d.role.toLowerCase();
+        if (d && d.logged_in) {
+            if (d.role) currentUserRole = d.role.toLowerCase();
+            if (d.username) currentUsername = d.username;
+        }
         return currentUserRole;
     }).catch(()=>currentUserRole);
 
@@ -162,8 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${u.id}</td>
                 <td>${u.username}<br><small>${u.email}</small></td>
                 <td>${u.wallet || '-'}</td>
-                    <td>${u.role}</td>
-                    <td>${(u.status ? (u.status.charAt(0).toUpperCase() + u.status.slice(1)) : 'Active')}</td>
+                <td>${u.role}</td>
+                <td>${(u.status ? (u.status.charAt(0).toUpperCase() + u.status.slice(1)) : 'Active')}</td>
+                <td>${(u.is_verified === 1 || u.is_verified === '1' || u.is_verified === true) ? '<span style="color:#009900;font-weight:bold">Verified</span>' : '-'}</td>
                 <td class="actions_cell"></td>
             `;
 
@@ -173,13 +178,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (u.status && u.status.toLowerCase() === 'disabled') {
                 actionsCell.textContent = '';
             } else {
+                const isSelfOwner = (currentUserRole === 'owner' && currentUsername && u.username && u.username.toLowerCase() === currentUsername.toLowerCase());
+                if (isSelfOwner) {
+                    actionsCell.textContent = '';
+                    tbody.appendChild(tr);
+                    return;
+                }
                 // Ban/Unban button
                 // For admins: only show ban button for regular users; hide for owner/admins
                 if (!(currentUserRole === 'admin' && !(u.role && u.role.toLowerCase() === 'user'))) {
                     const banBtn = document.createElement('button');
                     banBtn.className = 'btn btn-ban';
                     banBtn.textContent = (u.status && u.status.toLowerCase() === 'banned') ? 'Unban' : 'Ban';
-                    banBtn.addEventListener('click', () => adminAction('ban', u.id));
+                    banBtn.addEventListener('click', async () => {
+                        await adminAction('ban', u.id);
+                        fetchUsers();
+                    });
                     actionsCell.appendChild(banBtn);
                 }
 
@@ -194,23 +208,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         promoteBtn.disabled = true;
                         promoteBtn.title = 'Cannot change owner role';
                     }
-                    promoteBtn.addEventListener('click', () => {
+                    promoteBtn.addEventListener('click', async () => {
                         const action = isAdmin ? 'demote' : 'promote';
-                        adminAction(action, u.id);
+                        await adminAction(action, u.id);
+                        fetchUsers();
                     });
                     actionsCell.appendChild(promoteBtn);
                 }
 
-                // Verify button
-                const verifyBtn = document.createElement('button');
-                verifyBtn.className = 'btn btn-verify';
-                verifyBtn.textContent = 'Verify';
-                if (currentUserRole === 'admin' && u.role && u.role.toLowerCase() === 'owner') {
-                    verifyBtn.disabled = true;
-                    verifyBtn.title = 'Cannot verify owner';
+                // Verify button (doar dacă nu e deja verificat)
+                if (!(u.is_verified === 1 || u.is_verified === '1' || u.is_verified === true)) {
+                    const verifyBtn = document.createElement('button');
+                    verifyBtn.className = 'btn btn-verify';
+                    verifyBtn.textContent = 'Verify';
+                    if (currentUserRole === 'admin' && u.role && u.role.toLowerCase() === 'owner') {
+                        verifyBtn.disabled = true;
+                        verifyBtn.title = 'Cannot verify owner';
+                    }
+                    verifyBtn.addEventListener('click', async () => {
+                        await adminAction('verify', u.id);
+                        fetchUsers();
+                    });
+                    actionsCell.appendChild(verifyBtn);
                 }
-                verifyBtn.addEventListener('click', () => adminAction('verify', u.id));
-                actionsCell.appendChild(verifyBtn);
             }
 
             tbody.appendChild(tr);
@@ -241,14 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = document.getElementById('nftSearch');
         const min = document.getElementById('nftPriceMin');
         const max = document.getElementById('nftPriceMax');
-        if (!search || !min || !max) return;
+        const type = document.getElementById('nftTypeFilter');
+        if (!search || !min || !max || !type) return;
         const onChange = debounce(() => filterNfts(), 200);
         search.removeEventListener('input', onChange);
         min.removeEventListener('input', onChange);
         max.removeEventListener('input', onChange);
+        type.removeEventListener('change', onChange);
         search.addEventListener('input', onChange);
         min.addEventListener('input', onChange);
         max.addEventListener('input', onChange);
+        type.addEventListener('change', onChange);
     }
 
     function filterNfts() {
@@ -257,6 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxVal = parseFloat(document.getElementById('nftPriceMax') && document.getElementById('nftPriceMax').value) || null;
         let filtered = nftsCache.slice();
         if (!Array.isArray(filtered)) filtered = [];
+        const type = document.getElementById('nftTypeFilter') ? document.getElementById('nftTypeFilter').value : 'all';
+        if (type === 'featured') filtered = filtered.filter(n => (n.is_featured === 1 || n.is_featured === '1' || n.is_featured === true));
+        if (type === 'deleted') filtered = filtered.filter(n => n.is_deleted && (n.is_deleted === 1 || n.is_deleted === '1' || n.is_deleted === true));
+        // "all" nu filtrează suplimentar
         if (minVal !== null) filtered = filtered.filter(n => parseFloat(n.price) >= minVal);
         if (maxVal !== null) filtered = filtered.filter(n => parseFloat(n.price) <= maxVal);
         if (search) {
@@ -274,6 +301,18 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach(n => {
             const tr = document.createElement('tr');
             tr.dataset.rowId = n.id;
+            let actionCell = '';
+            let featuredCell = (n.is_featured === 1 || n.is_featured === '1' || n.is_featured === true) ? '<span style="color:#009900;font-weight:bold">Featured</span>' : '-';
+            if (n.is_deleted && parseInt(n.is_deleted) === 1) {
+                tr.classList.add('nft-deleted');
+                actionCell = '';
+            } else {
+                let featureBtnText = (n.is_featured === 1 || n.is_featured === '1' || n.is_featured === true) ? 'Unfeature' : 'Feature';
+                actionCell = `
+                    <button class="btn btn-del">Delete</button>
+                    <button class="btn btn-feature">${featureBtnText}</button>
+                `;
+            }
             tr.innerHTML = `
                 <td><img src="${n.thumbnail}" style="width:48px;height:48px;object-fit:cover;border-radius:6px"></td>
                 <td>${n.name}</td>
@@ -281,15 +320,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${n.owner}</td>
                 <td>${n.price} ETH</td>
                 <td>${n.created_at}</td>
-                <td>
-                    <button class="btn btn-del">Delete</button>
-                    <button class="btn btn-feature">Feature</button>
-                </td>
+                <td>${featuredCell}</td>
+                <td>${actionCell}</td>
             `;
-            tr.querySelector('.btn-del').addEventListener('click', () => adminAction('delete_nft', n.id));
-            tr.querySelector('.btn-feature').addEventListener('click', () => adminAction('feature_nft', n.id));
+            if (!n.is_deleted || parseInt(n.is_deleted) !== 1) {
+                const delBtn = tr.querySelector('.btn-del');
+                if (delBtn) {
+                    delBtn.addEventListener('click', function handleDelete() {
+                        delBtn.textContent = 'Confirm';
+                        delBtn.style.background = '#a30000';
+                        delBtn.style.color = '#fff';
+                        delBtn.removeEventListener('click', handleDelete);
+                        delBtn.addEventListener('click', function handleConfirm() {
+                            delBtn.disabled = true;
+                            adminAction('delete_nft', n.id).then(() => {
+                                tr.remove();
+                            });
+                        });
+                    });
+                }
+                const featureBtn = tr.querySelector('.btn-feature');
+                if (featureBtn) {
+                    featureBtn.addEventListener('click', async () => {
+                        if (featureBtn.textContent === 'Feature') {
+                            await adminAction('feature_nft', n.id);
+                        } else {
+                            await adminAction('unfeature_nft', n.id);
+                        }
+                        fetchNFTs();
+                    });
+                }
+            }
             tbody.appendChild(tr);
         });
+    // Stil pentru NFT șters
+    const style = document.createElement('style');
+    style.innerHTML = `
+    tr.nft-deleted {
+        background: #ffeaea !important;
+        color: #a30000;
+        opacity: 0.7;
+    }
+    `;
+    document.head.appendChild(style);
     }
 
     function mockNFTs() {
@@ -481,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchReports();
                     break;
                 case 'feature_nft':
+                case 'unfeature_nft':
                     fetchNFTs();
                     break;
                 case 'dismiss_report':

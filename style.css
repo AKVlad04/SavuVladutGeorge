@@ -336,6 +336,141 @@ body {
     font-size: 14px;
     color: rgb(156, 163, 175);
 }
+/* Owner / Creator info boxes under price */
+.owner_creator_boxes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+    width: 443px; /* la fel ca .currentPrice (revenit) */
+}
+
+.owner_box,
+.creator_box {
+    width: 100%;
+    padding: 16px 16px; /* putin mai inalte prin padding mai mare */
+    border-radius: 10px;
+    background-color: rgb(26 26 36); /* aceleași culori ca currentPrice */
+    display: flex;
+    flex-direction: row; /* label stanga, value dreapta */
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.owner_box .label,
+.creator_box .label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9ca3af;
+}
+
+.owner_box .value,
+.creator_box .value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.owner_box .value::before,
+.creator_box .value::before {
+    content: "@";
+    opacity: 0.5;
+    margin-right: 4px;
+}
+
+/* Image column + actions (Send Request + Wishlist) */
+.popup_image_wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 0 20px 0 30px;
+    width: 520px; /* aceeași lățime ca imaginea */
+}
+
+.popup_image_wrapper img {
+    width: 100%;
+    height: 520px;
+    margin: 15px 0 0 0; /* margine sus, fără stânga/dreapta suplimentare */
+}
+
+.popup_image_actions {
+    margin: 16px 0 0 0;
+    display: flex;
+    flex-direction: row; /* pe același rând */
+    align-items: center;
+    gap: 10px;
+}
+
+.btn {
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.popup_image_actions .btn-primary {
+    flex: 1 1 auto; /* Send Request ocupă restul de lățime */
+}
+
+.popup_image_actions .wishlist-btn {
+    flex: 0 0 auto;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00d9ff, #8b5cf6);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.6px #35d8f6;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 15px rgba(0, 217, 255, 0.7);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(15, 23, 42, 0.95);
+    color: #e5e7eb;
+    box-shadow: 0 0 0 0.6px #4b5563;
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 0 10px rgba(75, 85, 99, 0.6);
+    transform: translateY(-1px);
+}
+
+.wishlist-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 999px; /* mic, rotund */
+}
+.wishlist-heart {
+    width: 22px;
+    height: 22px;
+    color: #9ca3af;
+}
+
+.wishlist-btn.active {
+    background: rgba(220, 38, 38, 0.12);
+    box-shadow: 0 0 0 0.6px #ef4444;
+    color: #fecaca;
+}
+.wishlist-btn.active .wishlist-heart {
+    color: #f87171;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
 @keyframes popupFade {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }

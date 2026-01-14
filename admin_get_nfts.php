@@ -36,8 +36,13 @@ try {
         $orderBy = "ORDER BY n.id DESC";
     }
 
+    $hasIsDeleted = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_deleted'")->rowCount() > 0;
+    $hasIsFeatured = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_featured'")->rowCount() > 0;
+    $extraCols = '';
+    if ($hasIsDeleted) $extraCols .= ', n.is_deleted';
+    if ($hasIsFeatured) $extraCols .= ', n.is_featured';
     $sql = "SELECT n.id, n.name, $thumbExpr, n.price, $createdExpr, ";
-    $sql .= "COALESCE(u.username, n.creator_id) AS creator, COALESCE(o.username, n.owner_id) AS owner ";
+    $sql .= "COALESCE(u.username, n.creator_id) AS creator, COALESCE(o.username, n.owner_id) AS owner" . $extraCols . " ";
     $sql .= "FROM nfts n LEFT JOIN users u ON u.id = n.creator_id LEFT JOIN users o ON o.id = n.owner_id $orderBy";
 
     $stmt = $pdo->query($sql);

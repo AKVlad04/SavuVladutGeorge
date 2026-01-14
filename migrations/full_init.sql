@@ -52,6 +52,16 @@ INSERT INTO users (id, username, email, password, status, role, is_verified, wal
 INSERT INTO nfts (id, name, description, image_url, creator_id, price, category, owner_id, created_at) VALUES
 (1, 'Galactic Phoenix', 'A fiery bird rising from cosmic ashes.', 'img/1.jpg', 1, 5.88, 'Digital Art', 2, '2021-03-12 14:20:10');
 
+-- 8. WISHLIST TABLE (user <-> nft many-to-many)
+CREATE TABLE IF NOT EXISTS wishlist (
+  user_id INT NOT NULL,
+  nft_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, nft_id),
+  CONSTRAINT fk_wishlist_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_wishlist_nft FOREIGN KEY (nft_id) REFERENCES nfts(id) ON DELETE CASCADE
+);
+
 -- 6. POPULATE VERIFICATION REQUESTS (optional)
 INSERT INTO verification_requests (user_id, description, image_url, status) VALUES
 (2, 'Please verify my account', 'img/verify1.jpg', 'pending');

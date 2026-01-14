@@ -1,8 +1,4 @@
-const mockNFTs = [
-    {"creator_id": 1, "name": "Cyber Dreams #001", "description": "This unique digital artwork presents a captivating vision of a futuristic cyberpunk landscape.", "price": 2.5, "category": "Digital Art", "image_url": "img/galactic.jpg"},
-    {"creator_id": 4, "name": "Giga Cats #001", "description": "A futuristic feline collectible from the first Giga Cats series.", "price": 1.2, "category": "Collectibles", "image_url": "img/neon.jpg"},
-    {"creator_id": 18, "name": "Genesis Token #008", "description": "One of the original Genesis tokens.", "price": 5.0, "category": "Utility", "image_url": "img/echoes.jpg"}
-];
+
     
 // --- LOGICA PENTRU NFT-URI ȘI INTERFAȚĂ ---
 
@@ -22,6 +18,10 @@ if (container) {
     const popupDescription = document.getElementById('popupDescription');
     const popupPrice = document.getElementById('popupPrice');
     const popupImg = document.getElementById('popupImage');
+    const popupOwner = document.getElementById('popupOwner');
+    const popupCreator = document.getElementById('popupCreator');
+    const sendRequestBtn = document.getElementById('sendRequestBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
     const closeBtn = popup ? popup.querySelector('.close') : null;
 
     // Elementele pentru Filtrare
@@ -34,13 +34,15 @@ if (container) {
 
     let currentNFTs = [];
     let nftsFromDB = [];
+    let ethRateCache = null;
+    let ethRateCacheTime = 0;
     const searchInputMain = document.getElementById('search_bar');
     const searchInputExplore = document.getElementById('search_bar_explore');
 
     // Load NFTs from server, fallback to mock data
     fetch('nfts.php').then(r => r.json()).then(data => {
         if (Array.isArray(data) && data.length > 0) nftsFromDB = data;
-        else nftsFromDB = mockNFTs;
+        else nftsFromDB = [];
         // On main page show only featured; on explore show all
         const isIndex = !!document.getElementById('search_bar');
         if (isIndex) {
@@ -51,8 +53,8 @@ if (container) {
         populateCategories();
         renderNFTs(currentNFTs);
     }).catch(err => {
-        console.warn('Could not load nfts.php, using mock', err);
-        nftsFromDB = mockNFTs;
+        console.warn('Could not load nfts.php', err);
+        nftsFromDB = [];
         const isIndex = !!document.getElementById('search_bar');
         if (isIndex) currentNFTs = nftsFromDB.filter(n => n.is_featured && parseInt(n.is_featured) === 1);
         else currentNFTs = nftsFromDB.slice();
@@ -106,6 +108,8 @@ if (container) {
                 popupDescription.textContent = nft.description;
                 popupPrice.textContent = nft.price + " ETH";
                 popupImg.src = nft.image_url;
+                if (popupOwner) popupOwner.textContent = nft.owner_name || (nft.owner_id ? ('User #' + nft.owner_id) : '—');
+                if (popupCreator) popupCreator.textContent = nft.creator_name || (nft.creator_id ? ('User #' + nft.creator_id) : '—');
                 popup.classList.add('show');
                 // Update approximate USD price in the popup. Query the element inside the popup
                 const aproxElLocal = popup ? popup.querySelector('#aprox') : null;
@@ -121,20 +125,29 @@ if (container) {
                 try {
                     const fallbackRate = 1900; // USD per ETH if external API fails
                     let rate = fallbackRate;
-                    const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-                    console.log('CoinGecko fetch ok?', resp.ok, 'status', resp.status);
-                    if (resp.ok) {
-                        const json = await resp.json();
-                        console.log('CoinGecko response', json);
-                        if (json && json.ethereum && typeof json.ethereum.usd === 'number') {
-                            rate = json.ethereum.usd;
-                            console.log('ETH->USD rate', rate);
-                        }
+
+                    const now = Date.now();
+                    if (ethRateCache && (now - ethRateCacheTime) < 5 * 60 * 1000) {
+                        rate = ethRateCache;
                     } else {
-                        console.warn('CoinGecko returned non-ok status, using fallback rate', rate);
+                        const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+                        console.log('CoinGecko fetch ok?', resp.ok, 'status', resp.status);
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            console.log('CoinGecko response', json);
+                            if (json && json.ethereum && typeof json.ethereum.usd === 'number') {
+                                rate = json.ethereum.usd;
+                                ethRateCache = rate;
+                                ethRateCacheTime = now;
+                                console.log('ETH->USD rate', rate);
+                            }
+                        } else {
+                            console.warn('CoinGecko returned non-ok status, using fallback rate', rate);
+                        }
                     }
 
-                    const text = "≈ $" + (nft.price * rate).toFixed(2) + " USD";
+                    const ethVal = parseFloat(nft.price) || 0;
+                    const text = "≈ $" + (ethVal * rate).toFixed(2) + " USD";
                     if (aproxElLocal) {
                         aproxElLocal.textContent = text;
                         console.log('Updated aprox inside popup:', text);
@@ -149,7 +162,8 @@ if (container) {
                         }
                     }
                 } catch (e) {
-                    const text = "≈ $" + (nft.price * 1900).toFixed(2) + " USD";
+                    const ethVal = parseFloat(nft.price) || 0;
+                    const text = "≈ $" + (ethVal * 1900).toFixed(2) + " USD";
                     if (aproxElLocal) {
                         aproxElLocal.textContent = text;
                         console.log('Fetch failed — used fallback and updated inside popup:', text);
@@ -159,6 +173,57 @@ if (container) {
                         console.log('Fetch failed — used fallback and updated global #aprox:', text);
                     }
                     console.error('Error fetching ETH price:', e);
+                }
+
+                // Wishlist initial state
+                if (wishlistBtn && nft.id) {
+                    wishlistBtn.disabled = false;
+                    fetch('wishlist_status.php?nft_id=' + encodeURIComponent(nft.id))
+                        .then(r => r.json())
+                        .then(st => {
+                            if (st && st.in_wishlist) {
+                                wishlistBtn.classList.add('active');
+                                wishlistBtn.setAttribute('aria-pressed', 'true');
+                            } else {
+                                wishlistBtn.classList.remove('active');
+                                wishlistBtn.setAttribute('aria-pressed', 'false');
+                            }
+                        }).catch(()=>{});
+
+                    wishlistBtn.onclick = async () => {
+                        try {
+                            const resp = await fetch('wishlist_toggle.php', {
+                                method: 'POST',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify({nft_id: nft.id})
+                            });
+                            const data = await resp.json();
+                            if (data && data.error === 'not_logged_in') {
+                                window.location.href = 'login.html';
+                                return;
+                            }
+                            if (data && data.ok) {
+                                const inW = !!data.in_wishlist;
+                                if (inW) {
+                                    wishlistBtn.classList.add('active');
+                                    wishlistBtn.setAttribute('aria-pressed', 'true');
+                                } else {
+                                    wishlistBtn.classList.remove('active');
+                                    wishlistBtn.setAttribute('aria-pressed', 'false');
+                                }
+                            }
+                        } catch(e) {
+                            console.error('wishlist toggle failed', e);
+                        }
+                    };
+                }
+
+                // Send Request button: redirect to contact with nft id
+                if (sendRequestBtn && nft.id) {
+                    sendRequestBtn.onclick = () => {
+                        const url = 'contact.html?nft_id=' + encodeURIComponent(nft.id);
+                        window.location.href = url;
+                    };
                 }
             });
             

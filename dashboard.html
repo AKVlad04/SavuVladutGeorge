@@ -99,6 +99,7 @@
                                 <th>Wallet</th>
                                 <th>Role</th>
                                 <th>Status</th>
+                                <th>Verified</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -113,6 +114,11 @@
                         <input type="search" id="nftSearch" placeholder="Search NFTs (name, creator, owner)" />
                         <input type="number" id="nftPriceMin" placeholder="Min price" step="0.01" style="width:90px" />
                         <input type="number" id="nftPriceMax" placeholder="Max price" step="0.01" style="width:90px" />
+                        <select id="nftTypeFilter" style="margin-left:10px">
+                            <option value="all">All NFTs</option>
+                            <option value="featured">Featured</option>
+                            <option value="deleted">Deleted</option>
+                        </select>
                     </div>
                     <table class="admin_table" id="nftsTable">
                         <thead>
@@ -123,6 +129,7 @@
                                 <th>Owner</th>
                                 <th>Price</th>
                                 <th>Date Created</th>
+                                <th>Featured</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>

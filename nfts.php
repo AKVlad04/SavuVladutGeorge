@@ -11,14 +11,12 @@ try {
         exit();
     }
 
-    // Only show approved NFTs
-    $hasApproved = $pdo->query("SHOW COLUMNS FROM nfts LIKE 'is_approved'")->rowCount() > 0;
-    $where = "is_deleted = 0";
-    if ($hasApproved) {
-        // Show all NFTs if is_approved is NULL (old rows), or is_approved=1 (approved)
-        $where .= " AND (is_approved IS NULL OR is_approved = 1)";
-    }
-    $stmt = $pdo->prepare("SELECT id, creator_id, owner_id, name, description, price, category, image_url, created_at, is_featured FROM nfts WHERE $where ORDER BY created_at DESC LIMIT 100");
+    // Only show non-deleted NFTs, join users to get creator/owner usernames
+    $where = "n.is_deleted = 0";
+    $sql = "SELECT n.id, n.creator_id, n.owner_id, n.name, n.description, n.price, n.category, n.image_url, n.created_at, n.is_featured, ";
+    $sql .= "COALESCE(uc.username, n.creator_id) AS creator_name, COALESCE(uo.username, n.owner_id) AS owner_name ";
+    $sql .= "FROM nfts n LEFT JOIN users uc ON uc.id = n.creator_id LEFT JOIN users uo ON uo.id = n.owner_id WHERE $where ORDER BY n.created_at DESC LIMIT 100";
+    $stmt = $pdo->prepare($sql);
     $stmt->execute();
     $rows = $stmt->fetchAll();
 
@@ -34,7 +32,9 @@ try {
             'category' => $r['category'],
             'image_url' => $r['image_url'] ?: 'img/placeholder.jpg',
             'created_at' => $r['created_at'],
-            'is_featured' => (int)$r['is_featured']
+            'is_featured' => (int)$r['is_featured'],
+            'creator_name' => isset($r['creator_name']) ? $r['creator_name'] : null,
+            'owner_name' => isset($r['owner_name']) ? $r['owner_name'] : null
         ];
     }, $rows);
 
