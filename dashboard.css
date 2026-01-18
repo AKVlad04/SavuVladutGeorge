@@ -82,7 +82,8 @@
 .admin_table tbody td{ padding:12px; border-top:1px solid rgba(255,255,255,0.03); font-size:14px }
 .admin_table img{ max-width:48px; border-radius:6px }
 
-.admin_table .user_link{
+.admin_table .user_link,
+.tx_item .user_link{
     color:#4ea1ff;
     cursor:pointer;
     text-decoration:underline;
@@ -96,8 +97,110 @@
 .btn-feature{ background:#6366f1; color:#fff }
 .btn-dismiss{ background:#6b7280; color:#fff }
 
-.transactions_list{ max-height:420px; overflow:auto; padding:8px }
-.tx_row{ padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.02); color:var(--muted) }
+.transactions_list{
+    max-height:420px;
+    overflow:auto;
+    padding:8px 4px 8px 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.tx_item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 14px;
+    border-radius:10px;
+    background:rgba(15,23,42,0.95);
+    border:1px solid rgba(55,65,81,0.9);
+}
+
+.tx_item_left{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.tx_item_right{
+    text-align:right;
+}
+
+.tx_title{
+    font-weight:600;
+    color:#f9fafb;
+    font-size:14px;
+}
+
+.tx_meta{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.tx_amount{
+    font-weight:700;
+    color:#f9fafb;
+    font-size:14px;
+}
+
+.tx_badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:11px;
+    margin-bottom:4px;
+}
+
+.tx_badge_deposit{ background:rgba(16,185,129,0.14); color:#6ee7b7; }
+.tx_badge_withdraw{ background:rgba(239,68,68,0.16); color:#fecaca; }
+.tx_badge_buy{ background:rgba(59,130,246,0.14); color:#bfdbfe; }
+.tx_badge_sell{ background:rgba(234,179,8,0.14); color:#facc15; }
+
+.transactions_empty{
+    text-align:center;
+    color:var(--muted);
+    padding:20px 0;
+    font-size:14px;
+}
+
+/* Custom scrollbar for transactions list */
+.transactions_list::-webkit-scrollbar{
+    width:8px;
+}
+.transactions_list::-webkit-scrollbar-track{
+    background:transparent;
+}
+.transactions_list::-webkit-scrollbar-thumb{
+    background:rgba(75,85,99,0.85);
+    border-radius:999px;
+}
+.transactions_list::-webkit-scrollbar-thumb:hover{
+    background:rgba(107,114,128,0.95);
+}
+
+.reports_tabs{
+    margin-top:8px;
+    margin-bottom:8px;
+    display:flex;
+    gap:8px;
+}
+
+.reports_tab_btn{
+    background:#23272f;
+    color:#e5e7eb;
+    border:1px solid #4b5563;
+    border-radius:8px;
+    padding:6px 14px;
+    font-size:0.9rem;
+    cursor:pointer;
+    transition:background 0.2s,color 0.2s,border-color 0.2s;
+}
+
+.reports_tab_btn.active{
+    background:#111827;
+    border-color:var(--accent);
+    color:var(--accent);
+}
 
 /* Controls (search / filters) */
 .table_controls{ display:flex; gap:10px; align-items:center; margin:10px 0 6px; }

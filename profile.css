@@ -731,6 +731,8 @@ label[for="walletInput"] {
 
 .balance_field {
     margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
 }
 
 .balance_field label {
@@ -743,15 +745,15 @@ label[for="walletInput"] {
 }
 
 .balance_max_btn {
-    margin-top: 8px;
-    padding: 6px 12px;
+    align-self: flex-end;
+    margin-top: 6px;
+    padding: 4px 10px;
     border-radius: 999px;
     border: 1px solid rgba(148,163,184,0.7);
     background: rgba(15,23,42,0.95);
     color: #e5e7eb;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    float: right;
 }
 
 .balance_max_btn:hover {
@@ -782,6 +784,150 @@ label[for="walletInput"] {
     color: #fff;
     font-weight: 600;
     cursor: pointer;
+}
+
+/* Report button on public profile card */
+.profile_report_btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.95);
+    color: #e5e7eb;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.profile_report_btn:hover {
+    background: rgba(31,41,55,1);
+}
+
+/* Report modal */
+.report_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.report_modal {
+    background: #23272f;
+    border-radius: 18px;
+    padding: 24px 24px 20px 24px;
+    max-width: 420px;
+    width: 90vw;
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.65);
+    position: relative;
+}
+
+.report_modal_title {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #e5e7eb;
+}
+
+.report_modal_close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(15,23,42,0.9);
+    color: #9ca3af;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.report_modal_close:hover {
+    background: rgba(31,41,55,1);
+    color: #e5e7eb;
+}
+
+.report_field {
+    margin-bottom: 12px;
+}
+
+.report_field label {
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: rgb(156, 163, 175);
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.report_field select,
+.report_field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    color: #ddd;
+    outline: none;
+    resize: vertical;
+}
+
+#reportReason {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(15,23,42,0.95);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #e5e7eb;
+}
+
+#reportReason option {
+    background: #111827;
+    color: #e5e7eb;
+}
+
+.report_field select:focus,
+.report_field textarea:focus {
+    border-color: #35d8f6;
+    box-shadow: 0 0 0 1px rgba(53,216,246,0.4);
+}
+
+.report_status {
+    min-height: 18px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.report_actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.report_btn_secondary,
+.report_btn_primary {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.report_btn_secondary {
+    background: rgba(31,41,55,0.9);
+    color: #e5e7eb;
+    border: 1px solid rgba(148,163,184,0.7);
+}
+
+.report_btn_primary {
+    background: linear-gradient(90deg,#00d9ff,#8b5cf6);
+    color: #fff;
 }
 
 .balance_confirm_btn:hover {

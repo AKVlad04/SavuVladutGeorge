@@ -12,7 +12,7 @@ if (!$user && !$id) {
 }
 
 try {
-    // Find user by username or id
+    // Find user by username or id (basic public profile fields)
     if ($user) {
         $stmt = $pdo->prepare("SELECT id, username, email, status, role, is_verified, wallet FROM users WHERE username = ?");
         $stmt->execute([$user]);
@@ -24,6 +24,17 @@ try {
     if (!$u) {
         echo json_encode(['error' => 'User not found']);
         exit();
+    }
+    // Fetch avatar if column exists
+    $avatarUrl = null;
+    $hasAvatar = $pdo->query("SHOW COLUMNS FROM users LIKE 'avatar_url'")->rowCount() > 0;
+    if ($hasAvatar) {
+        $astmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
+        $astmt->execute([$u['id']]);
+        $ar = $astmt->fetch();
+        if ($ar && !empty($ar['avatar_url'])) {
+            $avatarUrl = $ar['avatar_url'];
+        }
     }
     // Get user's NFTs
     $nfts = [];
@@ -41,6 +52,7 @@ try {
         'role' => $u['role'],
         'is_verified' => isset($u['is_verified']) ? (int)$u['is_verified'] : 0,
         'wallet' => $u['wallet'],
+        'avatar_url' => $avatarUrl,
         'nfts' => $nfts
     ]);
 } catch (Exception $e) {

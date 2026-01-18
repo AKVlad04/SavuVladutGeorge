@@ -31,6 +31,7 @@
     </header>
     <div class="profile_page">
         <div class="profile_card" id="profileCard" style="opacity: 0; transition: opacity 0.5s;">
+            <button id="reportUserBtn" class="profile_report_btn" style="display:none;" type="button">Report</button>
             <div class="profile_avatar" id="userAvatar">?</div>
             <h1 class="profile_name" id="userName">Loading...</h1>
             <span class="profile_email" id="userEmail">...</span>
@@ -186,8 +187,39 @@
                 document.getElementById('userStatus').textContent = data.status;
                 document.getElementById('userRole').textContent = data.role || 'User';
                 document.getElementById('userId').textContent = '#' + data.id;
-                document.getElementById('userAvatar').textContent = data.username ? data.username.charAt(0).toUpperCase() : '?';
+
+                const avatarEl = document.getElementById('userAvatar');
+                if (avatarEl) {
+                    if (data.avatar_url) {
+                        avatarEl.style.backgroundImage = 'url(' + data.avatar_url + ')';
+                        avatarEl.style.backgroundSize = 'cover';
+                        avatarEl.style.backgroundPosition = 'center';
+                        avatarEl.textContent = '';
+                    } else {
+                        avatarEl.textContent = data.username ? data.username.charAt(0).toUpperCase() : '?';
+                        avatarEl.style.backgroundImage = '';
+                    }
+                }
                 document.getElementById('profileCard').style.opacity = '1';
+
+                // Configure report button visibility (only logged-in users, not on their own profile)
+                fetch('check_auth.php')
+                    .then(r => r.json())
+                    .then(auth => {
+                        const btn = document.getElementById('reportUserBtn');
+                        if (!btn) return;
+                        if (!auth || !auth.logged_in || !auth.username || !data.username || auth.username.toLowerCase() === String(data.username).toLowerCase()) {
+                            btn.style.display = 'none';
+                            return;
+                        }
+                        btn.style.display = 'inline-flex';
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            openReportModal(data.id, data.username);
+                        });
+                    })
+                    .catch(() => {});
+
                 initProfileTabs();
 
                 // Load NFTs for stats and grids on public profile
@@ -449,23 +481,135 @@
         popup.classList.add('show');
     }
 
-    // Popup close logic for public profile
+    // --- REPORT MODAL LOGIC ---
+    function openReportModal(targetUserId, targetUsername) {
+        const overlay = document.getElementById('reportModal');
+        if (!overlay) return;
+        const reasonSelect = document.getElementById('reportReason');
+        const detailsInput = document.getElementById('reportDetails');
+        const nameSpan = document.getElementById('reportTargetName');
+        if (nameSpan && targetUsername) {
+            nameSpan.textContent = targetUsername;
+        }
+        if (reasonSelect) reasonSelect.value = '';
+        if (detailsInput) detailsInput.value = '';
+        overlay.dataset.targetUserId = String(targetUserId || '');
+        overlay.style.display = 'flex';
+    }
+
+    function closeReportModal() {
+        const overlay = document.getElementById('reportModal');
+        if (!overlay) return;
+        overlay.style.display = 'none';
+    }
+
+    // Popup & report modal close logic for public profile
     document.addEventListener('DOMContentLoaded', () => {
         const popup = document.getElementById('nftPopup');
-        if (!popup) return;
-        const closeBtn = popup.querySelector('.close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                popup.classList.remove('show');
+        if (popup) {
+            const closeBtn = popup.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    popup.classList.remove('show');
+                });
+            }
+            window.addEventListener('click', (e) => {
+                if (e.target === popup) {
+                    popup.classList.remove('show');
+                }
             });
         }
-        window.addEventListener('click', (e) => {
-            if (e.target === popup) {
-                popup.classList.remove('show');
-            }
+
+        const overlay = document.getElementById('reportModal');
+        if (!overlay) return;
+        const closeBtn2 = document.getElementById('reportModalClose');
+        const cancelBtn = document.getElementById('reportCancelBtn');
+        const submitBtn = document.getElementById('reportSubmitBtn');
+        const reasonSelect = document.getElementById('reportReason');
+        const detailsInput = document.getElementById('reportDetails');
+        const statusEl = document.getElementById('reportStatus');
+
+        function setStatus(msg, ok) {
+            if (!statusEl) return;
+            statusEl.textContent = msg || '';
+            statusEl.style.color = ok ? '#10b981' : '#ef4444';
+        }
+
+        if (closeBtn2) closeBtn2.addEventListener('click', (e) => { e.preventDefault(); closeReportModal(); });
+        if (cancelBtn) cancelBtn.addEventListener('click', (e) => { e.preventDefault(); closeReportModal(); });
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeReportModal();
         });
+        if (submitBtn && reasonSelect && detailsInput) {
+            submitBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const reason = reasonSelect.value;
+                const details = detailsInput.value.trim();
+                const targetIdRaw = overlay.dataset.targetUserId || '';
+                const targetUserId = parseInt(targetIdRaw, 10) || 0;
+                if (!targetUserId) {
+                    setStatus('Invalid report target.', false);
+                    return;
+                }
+                if (!reason) {
+                    setStatus('Select a reason for the report.', false);
+                    return;
+                }
+                try {
+                    submitBtn.disabled = true;
+                    setStatus('Sending report...', true);
+                    const resp = await fetch('submit_report.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target_user_id: targetUserId, reason, details })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok || !data || !data.ok) {
+                        const code = data && data.error ? data.error : 'unknown_error';
+                        let msg = 'Could not send report.';
+                        if (code === 'not_authenticated') msg = 'You must be logged in to send a report.';
+                        setStatus(msg, false);
+                    } else {
+                        setStatus('Report sent. Thank you for your feedback.', true);
+                        setTimeout(() => { closeReportModal(); }, 1200);
+                    }
+                } catch (err) {
+                    console.error('submit_report failed', err);
+                    setStatus('Network error while sending report.', false);
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            });
+        }
     });
     </script>
+
+    <!-- Report user modal -->
+    <div id="reportModal" class="report_modal_overlay" style="display:none;">
+        <div class="report_modal">
+            <button type="button" id="reportModalClose" class="report_modal_close">&times;</button>
+            <h3 class="report_modal_title">Report user <span id="reportTargetName"></span></h3>
+            <div class="report_field">
+                <label for="reportReason">Reason</label>
+                <select id="reportReason">
+                    <option value="">Select a reason</option>
+                    <option value="platform_rules">Platform rules violations</option>
+                    <option value="inappropriate_content">Inappropriate content</option>
+                    <option value="illegal_activities">Illegal or dangerous activities</option>
+                    <option value="security_issues">Security issues</option>
+                </select>
+            </div>
+            <div class="report_field">
+                <label for="reportDetails">Details</label>
+                <textarea id="reportDetails" rows="4" placeholder="Describe what happened..."></textarea>
+            </div>
+            <div id="reportStatus" class="report_status"></div>
+            <div class="report_actions">
+                <button type="button" id="reportCancelBtn" class="report_btn_secondary">Cancel</button>
+                <button type="button" id="reportSubmitBtn" class="report_btn_primary">Send report</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer">
 
@@ -488,7 +632,6 @@
             <span class="footer_text_big">Marketplace</span>
             <a href="explore.html" class="small_button_footer">Explore</a>
             <a href="create.html" class="small_button_footer">Mint</a>
-            <a href="collections.html" class="small_button_footer">Collections</a>
 
         </div>
 
@@ -497,7 +640,6 @@
             <span class="footer_text_big">Resources</span>
             <a href="helpcenter.html" class="small_button_footer">Help Center</a>
             <a href="contact.html" class="small_button_footer">Contact</a>
-            <a href="newsletter.html" class="small_button_footer">Newsletter</a>
 
         </div>
 

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- VERIFICATION REQUESTS ---
     let currentUserRole = 'user';
     let currentUsername = null;
+    let currentReportsMode = 'open';
     // determine caller role to adjust which actions are enabled and only then init data
     const rolePromise = fetch('check_auth.php').then(r=>r.json()).then(d=>{
         if (d && d.logged_in) {
@@ -203,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.dataset.rowId = u.id;
             tr.innerHTML = `
                 <td>${u.id}</td>
-                <td>${u.username}<br><small>${u.email}</small></td>
+                <td><span class="user_link user-row-link" data-username="${u.username}">${u.username}</span><br><small>${u.email}</small></td>
                 <td>${u.wallet || '-'}</td>
                 <td>${u.role}</td>
                 <td>${(u.status ? (u.status.charAt(0).toUpperCase() + u.status.slice(1)) : 'Active')}</td>
@@ -270,6 +271,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     actionsCell.appendChild(verifyBtn);
                 }
+            }
+
+            const userLink = tr.querySelector('.user-row-link');
+            if (userLink && u.username) {
+                userLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const uname = u.username;
+                    if (!uname) return;
+                    if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                        window.location.href = 'profile.html';
+                    } else {
+                        window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                    }
+                });
             }
 
             tbody.appendChild(tr);
@@ -443,8 +458,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Reports
-    function fetchReports() {
-        fetch('admin_get_reports.php')
+    function fetchReports(mode) {
+        if (mode) currentReportsMode = mode;
+        const statusParam = currentReportsMode === 'history' ? 'closed' : 'open';
+        fetch('admin_get_reports.php?status=' + encodeURIComponent(statusParam))
             .then(r => r.json())
             .then(data => renderReportsTable(data))
             .catch(() => renderReportsTable(mockReports()));
@@ -452,21 +469,141 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderReportsTable(reports) {
         const tbody = document.querySelector('#reportsTable tbody');
+        if (!tbody) return;
         tbody.innerHTML = '';
+        if (!Array.isArray(reports) || reports.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.textContent = 'No reports found.';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+        const isHistory = (currentReportsMode === 'history');
         reports.forEach(r => {
             const tr = document.createElement('tr');
             tr.dataset.rowId = r.id;
-            tr.innerHTML = `
-                <td><a href="explore.html">${r.item_name}</a></td>
-                <td>${r.reason}</td>
-                <td>${r.reported_by}</td>
-                <td>
+
+            const type = (r.type || 'nft').toLowerCase();
+            const reporterName = r.reported_by || '';
+            const reporterCellHtml = reporterName
+                ? `<span class="user_link report-reporter-link" data-username="${reporterName}">${reporterName}</span>`
+                : '-';
+
+            let targetLabel = '-';
+            let targetHtml = '';
+            if (type === 'nft') {
+                const nftName = r.nft_name || r.item_name || '';
+                const ownerName = r.nft_owner_name || '';
+                const nftPart = nftName ? `NFT: "${nftName}"` : `NFT #${r.item_id || ''}`;
+                const ownerPart = ownerName ? ` (Owner: ${ownerName})` : '';
+                targetLabel = nftPart + ownerPart;
+            } else {
+                const uname = r.user_name || '';
+                if (uname) {
+                    targetLabel = uname;
+                } else {
+                    targetLabel = `User #${r.item_id || ''}`;
+                }
+            }
+
+            if (type === 'user') {
+                const uname = r.user_name || '';
+                if (uname) {
+                    targetHtml = `<span class=\"user_link report-target-link\" data-username=\"${uname}\">${uname}</span>`;
+                } else {
+                    targetHtml = targetLabel;
+                }
+            } else {
+                targetHtml = targetLabel;
+            }
+
+            const createdAt = r.created_at || '';
+            const createdText = createdAt ? createdAt : '';
+            const reasonText = r.reason || '';
+            const detailsText = r.details ? `<br><small>${r.details}</small>` : '';
+            const statusText = r.status ? (r.status.charAt(0).toUpperCase() + r.status.slice(1)) : 'Open';
+
+            let actionsHtml = '';
+            if (!isHistory) {
+                actionsHtml = `
+                    <span style="margin-right:8px;font-size:12px;color:#6b7280;">${statusText}</span>
                     <button class="btn btn-dismiss">Dismiss</button>
-                    <button class="btn btn-delete">Delete Item</button>
-                </td>
+                    ${type === 'nft' ? '<button class="btn btn-delete">Delete NFT</button>' : '<button class="btn btn-ban">Ban user</button>'}
+                `;
+            } else {
+                actionsHtml = `<span style="font-size:12px;color:#6b7280;">${statusText}</span>`;
+            }
+
+            tr.innerHTML = `
+                <td>${reporterCellHtml}</td>
+                <td>${targetHtml}</td>
+                <td>${reasonText}${detailsText}</td>
+                <td>${createdText}</td>
+                <td>${actionsHtml}</td>
             `;
-            tr.querySelector('.btn-dismiss').addEventListener('click', () => adminAction('dismiss_report', r.id));
-            tr.querySelector('.btn-delete').addEventListener('click', () => adminAction('delete_nft', r.item_id));
+
+            if (!isHistory) {
+                const closeBtn = tr.querySelector('.btn-dismiss');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', async () => {
+                        await adminAction('dismiss_report', r.id);
+                        fetchReports('open');
+                    });
+                }
+
+                if (type === 'nft') {
+                    const delBtn = tr.querySelector('.btn-delete');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', async () => {
+                            if (!r.item_id) return;
+                            await adminAction('delete_nft', r.item_id);
+                            await adminAction('dismiss_report', r.id);
+                            fetchReports('open');
+                        });
+                    }
+                } else {
+                    const banBtn = tr.querySelector('.btn-ban');
+                    if (banBtn && r.item_id) {
+                        banBtn.addEventListener('click', async () => {
+                            await adminAction('ban', r.item_id);
+                            await adminAction('dismiss_report', r.id);
+                            fetchReports('open');
+                            fetchUsers();
+                        });
+                    }
+                }
+
+                const reporterLink = tr.querySelector('.report-reporter-link');
+                if (reporterLink && reporterName) {
+                    reporterLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const uname = reporterName;
+                        if (!uname) return;
+                        if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                            window.location.href = 'profile.html';
+                        } else {
+                            window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                        }
+                    });
+                }
+
+                const targetLink = tr.querySelector('.report-target-link');
+                if (targetLink && targetLink.dataset.username) {
+                    targetLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const uname = targetLink.dataset.username;
+                        if (!uname) return;
+                        if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                            window.location.href = 'profile.html';
+                        } else {
+                            window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                        }
+                    });
+                }
+            }
+
             tbody.appendChild(tr);
         });
     }
@@ -487,7 +624,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTransactions(tx) {
         const div = document.getElementById('transactionsList');
-        div.innerHTML = tx.map(t => `<div class="tx_row">[${t.time}] ${t.actor} ${t.action} ${t.target} for ${t.amount} ETH</div>`).join('');
+        if (!div) return;
+        if (!Array.isArray(tx) || tx.length === 0) {
+            div.innerHTML = '<div class="transactions_empty">No transactions found.</div>';
+            return;
+        }
+        const rows = tx.map(t => {
+            const type = (t.type || '').toLowerCase();
+            let badgeClass = 'tx_badge';
+            let badgeLabel = '';
+            switch (type) {
+                case 'deposit':
+                    badgeClass += ' tx_badge_deposit';
+                    badgeLabel = 'Deposit';
+                    break;
+                case 'withdraw':
+                    badgeClass += ' tx_badge_withdraw';
+                    badgeLabel = 'Withdraw';
+                    break;
+                case 'buy':
+                    badgeClass += ' tx_badge_buy';
+                    badgeLabel = 'Buy';
+                    break;
+                case 'sell':
+                    badgeClass += ' tx_badge_sell';
+                    badgeLabel = 'Sell';
+                    break;
+                default:
+                    badgeLabel = (t.action || 'Action');
+            }
+
+            const actorName = t.actor || '';
+            const actorHtml = actorName
+                ? `<span class="user_link tx-actor-link" data-username="${actorName}">${actorName}</span>`
+                : '';
+
+            let targetText = t.target || '';
+            if (t.nft_name) {
+                targetText = `"${t.nft_name}"`;
+            }
+
+            const title = `${actorHtml} ${t.action || ''} ${targetText}`.trim();
+            const meta = t.time ? t.time : '';
+
+            return `
+                <div class="tx_item" data-actor="${actorName}">
+                    <div class="tx_item_left">
+                        <div class="tx_title">${title}</div>
+                        <div class="tx_meta">${meta}</div>
+                    </div>
+                    <div class="tx_item_right">
+                        <div class="tx_badge ${badgeClass}">${badgeLabel}</div><br>
+                        <div class="tx_amount">${t.amount} ETH</div>
+                    </div>
+                </div>
+            `;
+        });
+        div.innerHTML = rows.join('');
+
+        // Wire clickable actor names
+        const actorLinks = div.querySelectorAll('.tx-actor-link[data-username]');
+        actorLinks.forEach(link => {
+            const uname = link.dataset.username;
+            if (!uname) return;
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUsername && currentUsername.toLowerCase() === uname.toLowerCase()) {
+                    window.location.href = 'profile.html';
+                } else {
+                    window.location.href = 'profile_public.html?user=' + encodeURIComponent(uname);
+                }
+            });
+        });
     }
 
     function mockTransactions() {
@@ -741,10 +949,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init after we know the caller role to avoid race conditions
     rolePromise.then(()=>{
+        // Wire reports subtabs
+        const reportTabs = document.querySelectorAll('.reports_tab_btn');
+        reportTabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                reportTabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const mode = btn.dataset.reportMode === 'history' ? 'history' : 'open';
+                fetchReports(mode);
+            });
+        });
+
         fetchOverview();
         fetchUsers();
         fetchNFTs();
-        fetchReports();
+        fetchReports('open');
         fetchTransactions();
     });
 

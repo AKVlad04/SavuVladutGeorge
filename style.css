@@ -15,6 +15,28 @@ body {
     overflow-x: hidden;
 }
 
+/* Global scrollbar styling */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 #020617;
+}
+
+/* WebKit-based browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #020617;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(75,85,99,0.9);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(107,114,128,1);
+}
+
 
 /* -------------------------------------- */
 /* 2. HEADER ȘI NAVIGAȚIE */
@@ -746,6 +768,16 @@ body {
     font-weight: 600;
     margin-bottom: 8px;
     color: #e5e7eb;
+}
+
+.offers_status_msg {
+    font-size: 0.9rem;
+    margin: 4px 0 10px 0;
+    color: #9ca3af;
+}
+
+.offers_status_msg.error {
+    color: #fca5a5;
 }
 
 .offer_item {

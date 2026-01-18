@@ -79,14 +79,13 @@ try {
         foreach ($rows as $r) $monthly_volume[] = ['month' => $r['ym'], 'volume' => (float)$r['volume']];
     }
 
-    // Top creators by trade volume (last 30 days, based on SELL transactions)
+    // Top owners/sellers by trade volume (last 30 days, based on SELL transactions)
     $top_creators = [];
     if ($hasNfts && $hasBalanceTx) {
         $stmt = $pdo->query(
             "SELECT u.id AS creator_id, u.username, IFNULL(SUM(bt.amount),0) AS volume
              FROM balance_transactions bt
-             JOIN nfts n ON bt.nft_id = n.id
-             JOIN users u ON n.creator_id = u.id
+             JOIN users u ON bt.user_id = u.id
              WHERE bt.type = 'sell' AND bt.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
              GROUP BY u.id, u.username
              ORDER BY volume DESC

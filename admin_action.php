@@ -163,9 +163,14 @@ try {
         exit();
     }
 
-    // DISMISS REPORT
+    // DISMISS / CLOSE REPORT (move to history instead of deleting)
     if ($action === 'dismiss_report') {
-        $pdo->prepare("DELETE FROM reports WHERE id = ?")->execute([$id]);
+        $colStatus = $pdo->query("SHOW COLUMNS FROM reports LIKE 'status'")->rowCount();
+        if ($colStatus === 0) {
+            $pdo->exec("ALTER TABLE reports ADD COLUMN status ENUM('open','closed') NOT NULL DEFAULT 'open' AFTER details");
+        }
+        $stmt = $pdo->prepare("UPDATE reports SET status = 'closed' WHERE id = ?");
+        $stmt->execute([$id]);
         echo json_encode(['ok' => true, 'action' => 'dismiss_report']);
         exit();
     }

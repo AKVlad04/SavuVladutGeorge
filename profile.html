@@ -113,7 +113,8 @@
                         <div id="createdGrid" class="nfts"></div>
 					</div>
                     <div class="profile_tab_panel" data-tab="offers">
-                        <h3 class="offers_section_title">Offers received on your NFTs</h3>
+                        <h3 class="offers_section_title">Offers that need your response</h3>
+                        <p id="offersStatus" class="offers_status_msg" style="display:none"></p>
                         <div id="offersList" class="offers_list"></div>
                         <h3 class="offers_section_title" style="margin-top:24px;">Offers you sent</h3>
                         <div id="sentOffersList" class="offers_list"></div>
@@ -816,10 +817,29 @@
                             }).catch(()=>{});
                         }
 
+                        function setOffersStatus(message, isError) {
+                            const el = document.getElementById('offersStatus');
+                            if (!el) return;
+                            if (!message) {
+                                el.textContent = '';
+                                el.style.display = 'none';
+                                el.classList.remove('error');
+                                return;
+                            }
+                            el.textContent = message;
+                            el.style.display = 'block';
+                            if (isError) {
+                                el.classList.add('error');
+                            } else {
+                                el.classList.remove('error');
+                            }
+                        }
+
                         function loadOffersList() {
                             const offersList = document.getElementById('offersList');
                             if (!offersList) return;
                             offersList.innerHTML = '';
+                            setOffersStatus('', false);
                             fetch('get_offers.php')
                                 .then(r => r.ok ? r.json() : Promise.reject())
                                 .then(payload => {
@@ -944,7 +964,7 @@
                                                             let msg = 'Could not accept offer.';
                                                             if (code === 'insufficient_funds') msg = 'Buyer no longer has enough balance for this offer.';
                                                             if (code === 'not_authorized_for_accept') msg = 'You are not allowed to accept this offer.';
-                                                            alert(msg);
+                                                            setOffersStatus(msg, true);
                                                         } else {
                                                             loadOffersList();
                                                             if (typeof loadSentOffersList === 'function') {
@@ -958,7 +978,7 @@
                                                         }
                                                     } catch (err) {
                                                         console.error('offer accept network error', err);
-                                                        alert('Network error while accepting offer.');
+                                                        setOffersStatus('Network error while accepting offer.', true);
                                                     } finally {
                                                         setBusy(false);
                                                     }
@@ -979,7 +999,7 @@
                                                             console.error('offer reject failed', data);
                                                             let msg = 'Could not reject offer.';
                                                             if (code === 'not_authorized_for_reject') msg = 'You are not allowed to reject this offer.';
-                                                            alert(msg);
+                                                            setOffersStatus(msg, true);
                                                         } else {
                                                             loadOffersList();
                                                             if (typeof loadSentOffersList === 'function') {
@@ -988,7 +1008,7 @@
                                                         }
                                                     } catch (err) {
                                                         console.error('offer reject network error', err);
-                                                        alert('Network error while rejecting offer.');
+                                                        setOffersStatus('Network error while rejecting offer.', true);
                                                     } finally {
                                                         setBusy(false);
                                                     }
@@ -1002,7 +1022,7 @@
                                                         if (val === null) return;
                                                         const parsed = parseFloat(String(val).replace(',', '.'));
                                                         if (!parsed || parsed <= 0) {
-                                                            alert('Please enter a valid positive price.');
+                                                            setOffersStatus('Please enter a valid positive price.', true);
                                                             return;
                                                         }
                                                         setBusy(true);
@@ -1017,7 +1037,7 @@
                                                                 console.error('offer counter failed', data);
                                                                 let msg = 'Could not send counter-offer.';
                                                                 if (data && data.error === 'not_seller') msg = 'You are not allowed to counter this offer.';
-                                                                alert(msg);
+                                                                setOffersStatus(msg, true);
                                                             } else {
                                                                 // după counter, oferta inițială dispare din lista de "received",
                                                                 // iar noul counter apare în lista de "sent" fără refresh.
@@ -1031,7 +1051,7 @@
                                                             }
                                                         } catch (err) {
                                                             console.error('offer counter network error', err);
-                                                            alert('Network error while sending counter-offer.');
+                                                            setOffersStatus('Network error while sending counter-offer.', true);
                                                         } finally {
                                                             setBusy(false);
                                                         }
@@ -1169,7 +1189,7 @@
                                                         const data = await resp.json();
                                                         if (!resp.ok || !data || !data.ok) {
                                                             console.error('offer cancel failed', data);
-                                                            alert('Could not cancel offer.');
+                                                            setOffersStatus('Could not cancel offer.', true);
                                                         } else {
                                                             loadSentOffersList();
                                                             if (typeof loadActivityList === 'function') {
@@ -1178,7 +1198,7 @@
                                                         }
                                                     } catch (err) {
                                                         console.error('offer cancel network error', err);
-                                                        alert('Network error while cancelling offer.');
+                                                        setOffersStatus('Network error while cancelling offer.', true);
                                                     } finally {
                                                         setBusy(false);
                                                     }
@@ -1581,7 +1601,6 @@
             <span class="footer_text_big">Marketplace</span>
             <a href="explore.html" class="small_button_footer">Explore</a>
             <a href="create.html" class="small_button_footer">Mint</a>
-            <a href="collections.html" class="small_button_footer">Collections</a>
 
         </div>
 
@@ -1590,7 +1609,6 @@
             <span class="footer_text_big">Resources</span>
             <a href="helpcenter.html" class="small_button_footer">Help Center</a>
             <a href="contact.html" class="small_button_footer">Contact</a>
-            <a href="newsletter.html" class="small_button_footer">Newsletter</a>
 
         </div>
 
